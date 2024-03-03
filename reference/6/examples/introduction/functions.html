@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Functions in Etro</title>
+  <script src="../../dist/etro-iife.js"></script>
+</head>
+<body>
+  <script>
+    let movie
+    window.addEventListener('load', () => {
+      const canvas = document.createElement('canvas')
+      document.body.appendChild(canvas)
+
+      initMovie(canvas)
+    })
+
+    const initMovie = canvas => {
+      movie = new etro.Movie({ canvas })
+
+      canvas.width = canvas.height = 400
+      movie
+      // Functions are callbacks that are called every time a property value is queried.
+      // For instance, you can set a layer's opacity to the function `Math.random`, which will make the
+      // layer's opacity randomized each animation frame.
+        .addLayer(new etro.layer.Visual({
+          startTime: 0,
+          duration: 3,
+          // omitting width or height sets the respective element to fill the screen
+          background: 'green',
+
+          opacity: (element, reltime) => Math.random()
+        }))
+        .play()
+    }
+  </script>
+</body>
+</html>

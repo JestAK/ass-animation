@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Media in Etro</title>
+  <script src="../../dist/etro-iife.js"></script>
+  <style> img, video {display: none;} </style>
+</head>
+<body>
+  <img src="../assets/lake.jpg"/>
+  <video src="../assets/beach.mp4"></video>
+  <audio src="../assets/strings.wav"></audio>
+  <button>Start</button>
+  <script>
+    const button = document.querySelector('button')
+    button.addEventListener('click', () => {
+      button.disabled = true
+      const canvas = document.createElement('canvas')
+      canvas.width = 600
+      canvas.height = 400
+      document.body.appendChild(canvas)
+
+      initMovie(canvas)
+    })
+
+    const initMovie = canvas => {
+      const movie = new etro.Movie({ canvas })
+      const video = document.querySelector('video')
+      movie.width = video.videoWidth
+      movie.height = video.videoHeight
+      movie
+        .addLayer(new etro.layer.Image({
+          startTime: 0,
+          duration: 3,
+          source: document.querySelector('img'),
+          // crop @ (150, 150) extending (200, 200)
+          sourceX: 100,
+          sourceY: 100,
+          sourceWidth: 400,
+          sourceHeight: 400,
+          x: 100,
+          y: 100,
+          width: 400,
+          height: 400
+        }))
+        .addLayer(new etro.layer.Video({
+          source: video,
+          startTime: 3,
+          // trim video to only include 3 seconds starting 2 minutes into the video in the video
+          sourceStartTime: 5,
+          duration: 3
+        }))
+        .addLayer(new etro.layer.Audio({
+          startTime: 6,
+          source: document.querySelector('audio'),
+          sourceStartTime: 9, // start audio at 9s
+          duration: 3 // last 3s
+          // volume: 0.25 // 25% of default volume (same as setting volume attribute on audio element)
+        }))
+        .play()
+    }
+  </script>
+</body>
+</html>

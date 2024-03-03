@@ -1,0 +1,90 @@
+<!-- TODO: fix -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fun with Etro</title>
+<!--  <script src="../../dist/etro-iife.js"></script>-->
+  <script src="/reference/6/node_modules/etro/dist/etro-iife.js"></script>
+</head>
+<body>
+  <script>
+    const cols = 2; const rows = 2
+    let movie, sample
+
+    const begin = () => {
+      const canvas = document.createElement('canvas')
+      document.body.appendChild(canvas)
+      movie = new etro.Movie({ canvas })
+      etro.event.subscribe(movie, 'timeupdate', () => {
+        if (movie.currentTime >= 11) {
+          movie.pause()
+        }
+      })
+
+      sample = document.createElement('video')
+      sample.src = '../assets/beach.mp4'
+
+      sample.onloadedmetadata = addLayers
+    }
+
+    const addLayers = () => {
+      movie.width = sample.videoWidth // you could also do canvas.width = sample.videoWidth;
+      movie.height = sample.videoHeight
+      const width = movie.width / cols; const height = movie.height / rows
+      let numbLoaded = 0
+
+      for (let y = 0; y < movie.height; y += height) {
+        for (let x = 0; x < movie.width; x += width) {
+          const video = document.createElement('video')
+          video.src = '../assets/beach.mp4'
+          if (x * y) {
+            video.onplay = event => {
+              console.log(event)
+            }
+          }
+
+          video.onloadedmetadata = () => {
+            const layer = new etro.layer.Video({
+              startTime: 0, source: video, x, y, width, height
+              // sourceStartTime: 0
+            }).addEffect(new etro.effect.Channels({
+              r: 0.5 + Math.random() * 0.5,
+              g: 0.5 + Math.random() * 0.5,
+              b: 0.5 + Math.random() * 0.5
+            }))
+            movie.addLayer(layer)
+            numbLoaded++
+
+            if (numbLoaded === rows * cols) {
+              end()
+            }
+          }
+        }
+      }
+    }
+
+    const end = () => {
+      movie
+        .addLayer(new etro.layer.Text({
+          startTime: 0,
+          duration: sample.duration,
+          text: 'etro',
+          width: movie.width / 2,
+          height: movie.height / 2,
+          x: movie.width / 4,
+          y: movie.height / 4,
+          textX: -movie.width / 4 + movie.width / 2,
+          textY: -movie.height / 4 + movie.height / 2,
+          background: 'rgba(255,0,200,0.4)',
+          color: 'rgba(255,255,255,0.7)',
+          font: '24px monospace',
+          textAlign: 'center',
+          textBaseline: 'middle'
+        }))
+        .play()
+    }
+
+    window.addEventListener('load', begin)
+  </script>
+</body>
+</html>

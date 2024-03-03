@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Define your CSS animation */
+        @keyframes slideAnimation {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(100px);
+            }
+        }
+
+        /* Apply the animation to an element */
+        .animated-element {
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            animation: slideAnimation 3s ease infinite; /* Adjust the duration and easing as needed */
+        }
+
+        /* Style for the slider */
+        input[type="range"] {
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slider to control the animation timeline -->
+<input type="range" id="animationSlider" min="0" max="100" step="1" value="0">
+
+<!-- Element to be animated -->
+<div class="animated-element"></div>
+
+<script>
+    // Get the slider element
+    var slider = document.getElementById("animationSlider");
+
+    // Add an event listener to the slider
+    slider.addEventListener("input", function() {
+        // Calculate the percentage based on the slider value
+        var percentage = slider.value;
+
+        // Update the animation with the new progress
+        var styleSheet = document.styleSheets[0];
+        styleSheet.deleteRule(0); // Remove the existing keyframes rule
+        styleSheet.insertRule(`@keyframes slideAnimation { 0% { transform: translateX(0); } ${percentage}% { transform: translateX(${percentage}px); } 100% { transform: translateX(100px); } }`, 0);
+    });
+</script>
+
+</body>
+</html>

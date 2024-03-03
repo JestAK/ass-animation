@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Media in Etro</title>
+  <script src="../../dist/etro-iife.js"></script>
+</head>
+<body>
+  <div id="input">
+    <img src="../assets/lake.jpg" style="display:none"/>
+    <video src="../assets/beach.mp4" style="display:none"></video>
+    <audio src="../assets/strings.wav" style="display:none"></audio>
+  </div>
+  <div id="output">
+    <video controls></video><br>
+  </div>
+  <button>Record</button>
+
+  <script>
+    // TODO: test audio output on a device that actually has drivers
+    let movie
+    const btn = document.querySelector('button')
+    btn.addEventListener('click', () => {
+      btn.disabled = true
+      const canvas = document.createElement('canvas')
+      canvas.width = 600
+      canvas.height = 400
+      // no need to add to body, as we don't need to say the movie but just the exported video
+
+      initMovie(canvas)
+    })
+
+    const initMovie = canvas => {
+      movie = new etro.Movie({ canvas })
+      const video = document.querySelector('#input video')
+      movie.width = video.videoWidth
+      movie.height = video.videoHeight
+      movie
+        .addLayer(new etro.layer.Image({
+          startTime: 0,
+          duration: 3,
+          source: document.querySelector('#input img'),
+          // crop @ (150, 150) extending (200, 200)
+          sourceX: 100,
+          sourceY: 100,
+          sourceWidth: 400,
+          sourceHeight: 400,
+          x: 100,
+          y: 100,
+          destWidth: 400,
+          destHeight: 400
+        }))
+        .addLayer(new etro.layer.Video({
+          startTime: 3,
+          source: video,
+          // trim video to only include 3 seconds starting 2 minutes into the video in the video
+          sourceStartTime: 5,
+          duration: 3
+        }))
+        .addLayer(new etro.layer.Audio({
+          startTime: 6,
+          source: document.querySelector('#input audio'),
+          sourceStartTime: 9, // start audio at 9s
+          duration: 3 // last 3s
+          // volume: 0.25 // 25% of default volume (same as setting volume attribute on audio element)
+        }))
+
+        .record({ frameRate: 25 })
+        .then(blob => {
+          const video = document.querySelector('#output video')
+          video.src = URL.createObjectURL(blob)
+        })
+        .catch(error => {
+          throw error
+        })
+
+      window.addEventListener('unload', () => {
+        const video = document.querySelector('#output video')
+        URL.revokeObjectURL(video.src)
+      })
+    }
+  </script>
+</body>
+</html>

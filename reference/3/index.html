@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Text Animator</title>
+</head>
+<body>
+
+<h1>Video Text Animator</h1>
+
+<video id="video" controls></video>
+
+<div id="text" contenteditable>Hello World!</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js"></script>
+
+<script>
+    // Отримуємо елемент для відображення відео
+    const videoElement = document.getElementById('video');
+
+    // Отримуємо елемент для відображення тексту
+    const textElement = document.getElementById('text');
+
+    // Використовуємо GSAP для анімації тексту
+    gsap.to(textElement, {
+        x: 100,
+        y: 50,
+        duration: 5,
+        ease: "power1.inOut",
+        onUpdate: () => {
+            // Отримуємо поточні координати тексту
+            const {x, y} = textElement.getBoundingClientRect();
+
+            // Зберігаємо координати в масив
+            coordinates.push({x, y});
+        }
+    });
+
+    // Відтворюємо відео разом з анімованим текстом
+    videoElement.play();
+</script>
+
+</body>
+</html>

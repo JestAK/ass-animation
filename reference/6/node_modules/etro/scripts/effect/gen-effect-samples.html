@@ -1,0 +1,133 @@
+<!-- Used by ./save-effect-samples.js (npm run effects) -->
+<!DOCTYPE html>
+<html>
+<body>
+  <script src="../dist/etro-iife.js"></script>
+  <script>
+    /**
+     * Prepares a canvas for saving
+     */
+    function save(canvas, path) {
+      const p = document.createElement('p')
+      p.dataset.path = path
+      p.innerHTML = canvas.toDataURL()
+      document.body.appendChild(p)
+    }
+
+    /**
+     * Create a square canvas with random opaque noise
+     * @param {number} size the width and height
+     * @return {TestCanvas}
+     *
+     * @typedef {Object} TestCanvas
+     * @property {CanvasRenderingContext2D} ctx
+     * @property {ImageData} imageData
+     */
+    function genRandomNoise (width, height) {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      // Create a grid of random colors
+      const imageData = ctx.createImageData(canvas.width, canvas.height)
+      // opaque so premultiplied alpha won't mess up the rgb comparisons
+      const data = imageData.data.map((_, i) => i % 4 === 3 ? 255 : Math.floor(256 * Math.random()))
+      for (let i = 0; i < data.length; i++) {
+        imageData.data[i] = data[i]
+      }
+      ctx.putImageData(imageData, 0, 0)
+
+      return canvas
+    }
+
+    /**
+     * Save an effect sample to the disk
+     */
+    async function saveSample(original, effect, path) {
+      // Create movie (needed for layer to render)
+      const movie = new etro.Movie({
+        canvas: document.createElement('canvas'),
+        autoRefresh: false
+      })
+
+      // Convert canvas to image
+      const originalImg = new Image()
+      await new Promise(resolve => {
+        originalImg.onload = resolve
+        originalImg.src = original.toDataURL()
+      })
+
+      // Add an image layer with the effect to the movie
+      const layer = new etro.layer.Image({
+        startTime: 0,
+        duration: 1,
+        source: originalImg
+      })
+      layer.effects.push(effect)
+      movie.layers.push(layer)
+
+      // Render and save the layer
+      layer.render()
+      save(layer.canvas, path)
+    }
+
+    window.onload = async () => {
+      const original = genRandomNoise(16, 16)
+      save(original, 'original.png')
+
+      const samples = {
+        'brightness.png': new etro.effect.Brightness({
+          brightness: -100
+        }),
+        'contrast.png': new etro.effect.Contrast({
+          contrast: 0.5
+        }),
+        'channels.png': new etro.effect.Channels({
+          factors: {
+            r: 0.25,
+            g: 0.5,
+            b: 0.75
+          }
+        }),
+        'chroma-key.png': new etro.effect.ChromaKey({
+          target: etro.parseColor('green'),
+          threshold: 100
+        }),
+        'gaussian-blur-horizontal.png': new etro.effect.GaussianBlurHorizontal({ radius: 5 }),
+        'gaussian-blur-vertical.png': new etro.effect.GaussianBlurVertical({ radius: 5 }),
+        'grayscale.png': new etro.effect.Grayscale(),
+        'pixelate.png': new etro.effect.Pixelate({ pixelSize: 3 }),
+        'shader.png': new etro.effect.Shader(),
+        'stack.png': new etro.effect.Stack({
+          effects: [
+            new etro.effect.Brightness({ brightness: -100 }),
+            new etro.effect.Contrast({ contrast: 0.5 })
+          ]
+        }),
+        'transform/translate.png': new etro.effect.Transform({
+          matrix: new etro.effect.Transform.Matrix().translate(-3, 5)
+        }),
+        'transform/scale.png': new etro.effect.Transform({
+          matrix: new etro.effect.Transform.Matrix().scale(2, 2)
+        }),
+        'transform/scale-fraction.png': new etro.effect.Transform({
+          matrix: new etro.effect.Transform.Matrix().scale(0.5, 0.5)
+        }),
+        'transform/rotate.png': new etro.effect.Transform({
+          matrix: new etro.effect.Transform.Matrix().rotate(Math.PI / 6)
+        }),
+        'transform/multiply.png': new etro.effect.Transform({
+          matrix: new etro.effect.Transform.Matrix().scale(2, 2)
+            .multiply(new etro.effect.Transform.Matrix().translate(-3, 5))
+        })
+      }
+
+      for (let path in samples) {
+        const effect = samples[path]
+        await saveSample(original, effect, path)
+      }
+      window.done = true
+    }
+  </script>
+</body>
+</html>

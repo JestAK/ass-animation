@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manipulating Audio in Etro</title>
+  <script src="../../dist/etro-iife.js"></script>
+</head>
+<body>
+  <button>Start</button>
+  <audio id="layer1" src="../assets/strings.wav"></audio>
+  <audio id="layer2" src="../assets/strings.wav"></audio>
+  <audio id="layer3" src="../assets/strings.wav"></audio>
+  <script>
+    const start = () => {
+      button.disabled = true
+      // initialize movie
+      const canvas = document.createElement('canvas')
+      const movie = new etro.Movie({ canvas })
+      // initialize layers (all with durations clipped to 5 seconds)
+      const audio1 = document.getElementById('layer1')
+      const audio2 = document.getElementById('layer2')
+      const audio3 = document.getElementById('layer3')
+      const layer1 = new etro.layer.Audio({ startTime: 0, source: audio1, duration: 5 })
+      const layer2 = new etro.layer.Audio({ startTime: layer1.duration, source: audio2, duration: 5 })
+      const layer3 = new etro.layer.Audio({
+        startTime: layer2.startTime + layer2.duration,
+        source: audio3,
+        duration: 5
+      })
+
+      /*
+          Once a media layer is added to the movie, it will automatically be connected to the movie's `actx`
+          property.
+          */
+      // add layers to movie (first, so we can reconnect it to the graph)
+      // movie.layers.push.apply(movie.layers, [layer1, layer2, layer3])
+      movie.layers.push(layer1, layer2, layer3)
+
+      // Now, disconnect the layers from the audio node graph and reconnect them with intersourcete audio
+      // effect nodes.
+
+      layer1.audioNode.disconnect(movie.actx.destination)
+      const muter = movie.actx.createGain()
+      muter.gain.value = 0
+      layer1.audioNode.connect(muter).connect(movie.actx.destination)
+
+      layer2.audioNode.disconnect(movie.actx.destination)
+      const panner = movie.actx.createStereoPanner()
+      panner.pan.value = +1 // completely to the right
+      layer2.audioNode.connect(panner).connect(movie.actx.destination)
+
+      // Manipulating the audio graph is not always necessary
+      layer3.playbackRate = 2 // double the speed
+
+      etro.event.subscribe(movie, 'ended', () => {
+        button.disabled = false
+      })
+      movie.play()
+    }
+
+    const button = document.querySelector('button')
+    button.addEventListener('click', start)
+  </script>
+</body>
+</html>

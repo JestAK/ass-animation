@@ -1,0 +1,120 @@
+html, body{
+    margin: 0;
+    padding: 0;
+    background-color: #333333;
+    height: 100%;
+}
+
+button, input[type="submit"], input[type="reset"] {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+}
+
+body{
+    display: flex;
+    flex-direction: column;
+}
+
+#viewport{
+    background-color: #333333;
+    flex-grow: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 630px;
+}
+
+#viewport video{
+    max-height: 70%;
+    max-width: 70%;
+}
+
+#controllers{
+    background-color: #1c1c1c;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 75px;
+}
+
+#controllers button{
+    height: 80%;
+    min-width: 80px;
+    margin: 0 10px;
+    background-color: #2a2a2a;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+#controllers button:hover{
+    background-color: #363636;
+}
+
+#controllers button:active{
+    background-color: #484848;
+}
+
+#timeline{
+    background-color: #262626;
+    flex-grow: 3;
+    min-height: 160px;
+    display: flex;
+    justify-content: center;
+    padding-top: 5px;
+}
+
+#timeline-range{
+    -webkit-appearance: none;
+    -moz-apperance: none;
+    appearance: none;
+    cursor: pointer;
+    width: 90%;
+    height: 20px;
+    background: #333333;
+    border-radius: 20px;
+}
+
+#timeline-range::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #1f1f1f;
+    height: 30px;
+    width: 30px;
+    border-radius: 100%;
+}
+
+#timeline-range::-moz-range-thumb{
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #1f1f1f;
+    height: 30px;
+    width: 30px;
+    border-radius: 100%;
+}
+
+#add-text{
+    width: 200px;
+    height: 30px;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    color: white;
+    font-weight: bold;
+}
+
+#add-text:hover{
+    background-color: #363636;
+}
+
+#add-text:active{
+    background-color: #484848;
+}

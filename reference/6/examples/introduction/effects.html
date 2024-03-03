@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Effects in Etro</title>
+  <script src="../../dist/etro-iife.js"></script>
+</head>
+<body>
+  <script>
+    let movie
+    window.addEventListener('load', () => {
+      const canvas = document.createElement('canvas')
+      document.body.appendChild(canvas)
+
+      initMovie(canvas)
+    })
+
+    const initMovie = canvas => {
+      movie = new etro.Movie({ canvas })
+
+      const image = document.querySelector('img')
+      canvas.width = image.width
+      canvas.height = image.height
+      // create a red 400x400 rectangle that starts at time 0 and lasts 2 seconds
+      movie
+        .addLayer(new etro.layer.Image({ startTime: 0, duration: 2, source: image }))
+      // create a transparent blue 500x200 at (50, 20) that starts at time 1 and lasts 2 seconds
+        .addLayer(
+          new etro.layer.Image({ startTime: 2, duration: 2, source: image }).addEffect(
+            new etro.effect.GaussianBlur({ radius: 3 })
+          )
+        )
+        .addLayer(
+          new etro.layer.Image({ startTime: 4, duration: 2, source: image }).addEffect(
+            // you can also use keyframes for almost any property in Etro
+            new etro.effect.Channels({
+              factors: new etro.KeyFrame(
+                [0, { r: 2, g: 0.5 }],
+                [2, { r: 0.5, g: 2 }]
+              )
+            })
+          )
+        )
+        .addLayer(
+          new etro.layer.Image({
+            startTime: 6,
+            duration: 2,
+            source: image,
+            // allow rotated image to fill entire screen by setting the size of the layer, which is not the image
+            width: movie.width,
+            height: movie.height
+          }).addEffect(
+            new etro.effect.Transform({
+              matrix: new etro.effect.Transform.Matrix().rotate(Math.PI / 6) // 30d
+            })
+          )
+        )
+        .addLayer(
+          new etro.layer.Image({ startTime: 8, duration: 2, source: image }).addEffect(
+            new etro.effect.EllipticalMask({
+              x: image.width / 2,
+              y: image.height / 2,
+              radiusX: image.width / 2,
+              radiusY: image.height / 2
+            })
+          )
+        )
+        // .addEffect(new etro.effect.GaussianBlur({ radius: 5 }))
+
+      setTimeout(() => {
+        // console.log(movie.layers[1].effects[0].effects[1].shape)
+      }, 3100)
+
+      movie
+        .play()
+    }
+  </script>
+  <img src="../assets/lake.jpg" style="display: none;"/>
+</body>
+</html>

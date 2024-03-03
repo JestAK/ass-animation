@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>getUserMedia()</title>
+  <script src="../../dist/etro-iife.js"></script>
+</head>
+<body>
+  <video style="display:none"></video>
+  <canvas></canvas>
+  <script>
+    const video = document.querySelector('video')
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream
+      video.onloadedmetadata = () => {
+        movie.width = video.videoWidth
+        movie.height = video.videoHeight
+        movie.play()
+      }
+    })
+
+    const canvas = document.querySelector('canvas')
+    const movie = new etro.Movie({ canvas })
+      .addLayer(new etro.layer.Visual({ startTime: 0, duration: Infinity, background: 'black' }))
+      .addLayer(new etro.layer.Video({ startTime: 0, source: video })
+        .addEffect(new etro.effect.ChromaKey(etro.parseColor('black'), 100)))
+  </script>
+</body>
+</html>
