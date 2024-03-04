@@ -1,3 +1,5 @@
+import anime from "animejs";
+
 import TextInspector from "./TextInspector";
 import './App.css';
 import React, {useEffect, useState} from "react";
@@ -6,14 +8,17 @@ import Draggable from "react-draggable";
 function App() {
 
     class TextObject {
-        static idCounter = 0;
         constructor() {
-            this.id = TextObject.idCounter++;
+            this.id = textIdCounter;
             this.posX = 0;
             this.posY = 0;
             this.content = `Text ID - ${textIdCounter}`;
             this.keyframes = [];
+            this.textColor = "#ffffff";
+            this.fontSize = 20;
             this.strokeThickness = 3;
+            this.strokeColor = "#000000"
+            setTextIdCounter(textIdCounter + 1)
         }
     }
 
@@ -22,7 +27,7 @@ function App() {
     const [timelineRange, setTimelineRange] = useState(null);
     const [textElements, setTextElements] = useState([]);
     const [textIdCounter, setTextIdCounter] = useState(0);
-    const [isHidden, setIsHidden] = useState(false);
+    const [isHidden, setIsHidden] = useState(true);
     const [selectedTextObject, setSelectedTextObject] = useState({})
 
     //get video and timeline-range
@@ -36,10 +41,8 @@ function App() {
 
     const addText = (newTextElement) => {
         const newTextElements = [...textElements];
-        newTextElement.id = textIdCounter;
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
-        setTextIdCounter(textIdCounter + 1)
     };
 
     const timelineToCurrentTime = () => {
@@ -48,6 +51,37 @@ function App() {
 
     const currentTimeToTimeline = () => {
         timelineRange.value = (video.currentTime / video.duration) * 100;
+    }
+
+    const onHandleIsHiddenChange = (newValue) => {
+        setIsHidden(newValue)
+    }
+
+    const onHandleTextElementsChange = (newValue) => {
+        setTextElements(newValue)
+        console.log(textElements)
+    }
+
+    const getSelectedTextObject = (id) => {
+        const foundObject = textElements.find(obj => obj.id === id);
+
+        if (!foundObject) {
+            alert(`Object not found with id: ${id}`);
+        }
+
+        setSelectedTextObject(foundObject)
+    }
+
+    const handleTextPosChange = (event, data, id) => {
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+        console.log(data)
+        newTextElements[index].posX = data.x
+        newTextElements[index].posY = data.y
+        console.log(newTextElements[index].posX)
+        console.log(data.x)
+
+        setTextElements(newTextElements);
     }
 
   return (
@@ -62,16 +96,36 @@ function App() {
               </video>
 
               {textElements.map((textElement) => (
-                  <Draggable bounds="parent">
-                      <p key={textElement.id}
-                         style={{position: 'absolute', top: textElement.top, left: textElement.left}}
-                         className="subtitle-text">
+                  <Draggable
+                      bounds="parent"
+                      key={textElement.id}
+                      position={{ x: textElement.posX, y: textElement.posY }}
+                      onDrag={(event, data) => {
+                      handleTextPosChange(event, data, textElement.id)
+                      getSelectedTextObject(textElement.id)
+                  }}>
+                      <pre style={{position: 'absolute',
+                             color: textElement.textColor,
+                             fontSize: `${textElement.fontSize}px`,
+                             WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
+                             WebkitTextStrokeColor: textElement.strokeColor,
+                      }}
+                         className="subtitle-text"
+                         onDoubleClick={() => {
+                             getSelectedTextObject(textElement.id)
+                             setIsHidden(false)
+                         }}>
                           {textElement.content}
-                      </p>
+                      </pre>
                   </Draggable>
               ))}
 
-              <TextInspector />
+              <TextInspector TextObject={selectedTextObject}
+                             isHidden={isHidden}
+                             onHandleIsHiddenChange={onHandleIsHiddenChange}
+                             textElements={textElements}
+                             onHandleTextElementsChange={onHandleTextElementsChange}
+              />
           </div>
           <div id="controllers">
               <button id="stop-button" onClick={() => {
@@ -99,6 +153,17 @@ function App() {
               defaultValue={0}
               onInput={() => {timelineToCurrentTime()}}
           />
+
+            {textElements.map((textElement) => (
+                <div className="text-track" key={textElement.id}>
+                    <div className="text-track-id" onClick={() => {
+                        getSelectedTextObject(textElement.id)
+                        setIsHidden(false)
+                    }}>ID: {textElement.id}</div>
+                    <div className="text-track-keyframe-area"></div>
+                </div>
+            ))}
+
         </div>
       </>
   );
@@ -106,3 +171,14 @@ function App() {
 
 
 export default App;
+
+
+//Add when can upload video
+// {video ? (
+//     <video id="video" onTimeUpdate={() => { currentTimeToTimeline() }}>
+//         <source src={videoSrc} type="video/mp4" />
+//         Your browser does not support the video tag.
+//     </video>
+// ) : (
+//     <div id="viewport-empty-video">NO VIDEO</div>
+// )}

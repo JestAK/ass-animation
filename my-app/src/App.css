@@ -32,6 +32,7 @@ body{
 #viewport #video{
   max-height: 70%;
   max-width: 70%;
+  margin: 50px 0;
 }
 
 #viewport .subtitle-text{
@@ -76,7 +77,8 @@ body{
   flex-grow: 3;
   min-height: 160px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding-top: 5px;
 }
 
@@ -89,6 +91,7 @@ body{
   height: 20px;
   background: #333333;
   border-radius: 20px;
+  margin-bottom: 20px;
 }
 
 #timeline-range::-webkit-slider-thumb{
@@ -107,6 +110,37 @@ body{
   height: 30px;
   width: 30px;
   border-radius: 100%;
+}
+
+#timeline .text-track{
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  background-color: #3f3f3f;
+  min-height: 30px;
+  width: 100%;
+  margin: 2px 0;
+}
+
+#timeline .text-track .text-track-id{
+  width: 5%;
+  min-height: 100%;
+  background-color: #3f3f3f;
+  border-right: 2px solid #505050;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #bbbbbb;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#timeline .text-track .text-track-keyframe-area{
+  width: 90%;
+  min-height: 100%;
+  margin: 2px 0;
+  background-color: #2f2f2f;
+  border-radius: 3px;
 }
 
 #add-text{
