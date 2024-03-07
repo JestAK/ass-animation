@@ -1,6 +1,7 @@
 import './App.css';
+import React from "react";
 
-function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange}) {
+function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange, videoCurrentTime}) {
 
     const isHiddenChange = () => {
         const newValue = true
@@ -63,6 +64,47 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         onHandleTextElementsChange(newTextElements);
     };
 
+    const toggleCreateKeyframe = (TextObject, currentTime) => {
+        const id = TextObject.id;
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+
+        if (TextObject.keyframes.some(keyframe => keyframe?.time === videoCurrentTime.toFixed(3))) {
+            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.time !== currentTime.toFixed(3))
+        } else {
+            newTextElements[index].keyframes.push({
+                time: currentTime.toFixed(3),
+                posX: TextObject.posX,
+                posY: TextObject.posY,
+                fontSize: TextObject.fontSize,
+                sizeX: TextObject.sizeX,
+                sizeY: TextObject.sizeY,
+            });
+        }
+
+        newTextElements[index].keyframes.sort((a, b) => a.time - b.time);
+
+        console.log("Keyframe added")
+        console.log(newTextElements[index].keyframes)
+
+        onHandleTextElementsChange(newTextElements);
+    }
+
+    const changeTextElementSizeXY = (e, id) => {
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+        const { name, value } = e.target;
+        const newScale = parseFloat(value) || 0;
+
+        if (name === "scale-x") {
+            newTextElements[index].scaleX = newScale;
+        } else if (name === "scale-y") {
+            newTextElements[index].scaleY = newScale;
+        }
+
+        onHandleTextElementsChange(newTextElements);
+    }
+
 
     return(
       <>
@@ -78,7 +120,9 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   minLength="1"
                   maxLength="4"
                   value={TextObject.posX}
-                  onChange={(e) => {changeTextElementPosition(e, TextObject.id)}}
+                  onChange={(e) => {
+                      changeTextElementPosition(e, TextObject.id)
+                  }}
               />
 
               <label htmlFor="PosY">Position Y:</label>
@@ -90,7 +134,9 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   minLength="1"
                   maxLength="4"
                   value={TextObject.posY}
-                  onChange={(e) => {changeTextElementPosition(e, TextObject.id)}}
+                  onChange={(e) => {
+                      changeTextElementPosition(e, TextObject.id)
+                  }}
               />
 
               <label htmlFor="content">Content:</label>
@@ -121,9 +167,35 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   required
                   minLength="1"
                   maxLength="3"
-                  min="1"
+                  min="0"
                   value={TextObject.fontSize}
                   onChange={(e) => changeTextElementFontSize(e, TextObject.id)}
+              />
+
+              <label htmlFor="scale-x">Scale X:</label>
+              <input
+                  type="number"
+                  id="scale-x"
+                  name="scale-x"
+                  required
+                  minLength="1"
+                  maxLength="3"
+                  min="0"
+                  value={TextObject.fontSize}
+                  onChange={(e) => changeTextElementSizeXY(e, TextObject.id)}
+              />
+
+              <label htmlFor="scale-x">Scale Y:</label>
+              <input
+                  type="number"
+                  id="scale-y"
+                  name="scale-y"
+                  required
+                  minLength="1"
+                  maxLength="3"
+                  min="0"
+                  value={TextObject.fontSize}
+                  onChange={(e) => changeTextElementSizeXY(e, TextObject.id)}
               />
 
               <label htmlFor="stroke-thickness">Stroke thickness:</label>
@@ -151,10 +223,36 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   onChange={(e) => changeTextElementStrokeColor(e, TextObject.id)}
               />
 
-              <button id="close-button" onClick={() => {
-                  console.log("Keyframe added")
-              }}>Add keyframe
+              <button id="toggle-keyframe-button" onClick={() => {
+                  toggleCreateKeyframe(TextObject, videoCurrentTime)
+              }}>
+                  {
+                      (TextObject.keyframes && TextObject.keyframes.some(keyframe => keyframe?.time === videoCurrentTime.toFixed(3))) ? (
+                          "Delete keyframe"
+                      ) : (
+                          "Add keyframe"
+                      )
+                  }
               </button>
+
+              {
+                  (TextObject.keyframes && TextObject.keyframes.length) ? (
+                      <details>
+                          <summary>Show all keyframes</summary>
+                          {TextObject.keyframes.map((keyframe, index) => (
+                              <details key={keyframe.time}>
+                                  <summary>Keyframe {index}</summary>
+                                  <p>Time: {keyframe.time}<br/>
+                                      X: {keyframe.posX}<br/>
+                                      Y: {keyframe.posY}<br/>
+                                      Font size: {keyframe.fontSize}</p>
+                              </details>
+                          ))}
+                      </details>
+                  ) : (
+                      <></>
+                  )
+              }
 
               <button id="delete-button" onClick={() => {
                   deleteTextElement(TextObject.id)

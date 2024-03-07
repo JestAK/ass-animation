@@ -8,14 +8,18 @@ import Draggable from "react-draggable";
 function App() {
 
     class TextObject {
-        constructor() {
+        constructor(endTime) {
             this.id = textIdCounter;
             this.posX = 0;
             this.posY = 0;
             this.content = `Text ID - ${textIdCounter}`;
+            this.startTime = 0;
+            this.endTime = endTime;
             this.keyframes = [];
             this.textColor = "#ffffff";
             this.fontSize = 20;
+            this.scaleX = 1;
+            this.scaleY = 1;
             this.strokeThickness = 3;
             this.strokeColor = "#000000"
             setTextIdCounter(textIdCounter + 1)
@@ -23,7 +27,10 @@ function App() {
     }
 
     //initialise variables
+    const MILISECONDS_PER_SECOND = 1000;
     const [video, setVideo] = useState(null);
+    const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+    const [videoDuration, setVideoDuration] = useState(0);
     const [timelineRange, setTimelineRange] = useState(null);
     const [textElements, setTextElements] = useState([]);
     const [textIdCounter, setTextIdCounter] = useState(0);
@@ -47,6 +54,7 @@ function App() {
 
     const timelineToCurrentTime = () => {
         video.currentTime = video.duration * (timelineRange.value / 100);
+        console.log(video.currentTime)
     }
 
     const currentTimeToTimeline = () => {
@@ -67,9 +75,9 @@ function App() {
 
         if (!foundObject) {
             alert(`Object not found with id: ${id}`);
+        } else {
+            setSelectedTextObject(foundObject)
         }
-
-        setSelectedTextObject(foundObject)
     }
 
     const handleTextPosChange = (event, data, id) => {
@@ -86,38 +94,52 @@ function App() {
 
   return (
       <>
-        <button id="add-text" onClick={() => {addText(new TextObject())}}>Add Text</button>
+        <button id="add-text" onClick={() => {addText(new TextObject(video.duration))}}>Add Text</button>
           <div id="viewport">
               <video id="video" onTimeUpdate={() => {
                   currentTimeToTimeline()
+                  setVideoCurrentTime(video.currentTime)
               }}>
                   <source src={require('./prikolyas.mp4')} type="video/mp4"/>
                   Your browser does not support the video tag.
               </video>
 
               {textElements.map((textElement) => (
-                  <Draggable
-                      bounds="parent"
-                      key={textElement.id}
-                      position={{ x: textElement.posX, y: textElement.posY }}
-                      onDrag={(event, data) => {
-                      handleTextPosChange(event, data, textElement.id)
-                      getSelectedTextObject(textElement.id)
-                  }}>
-                      <pre style={{position: 'absolute',
-                             color: textElement.textColor,
-                             fontSize: `${textElement.fontSize}px`,
-                             WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
-                             WebkitTextStrokeColor: textElement.strokeColor,
+                  <div
+                      id="draggable-wrapper"
+                      style={{
+                          position: "absolute",
+                          // transform: `translate(0px 0px) scaleX(${textElement.scaleX}) scaleY(${textElement.scaleY})`,
+                          width: "100px",
+                          height: "100px",
+                          backgroundColor: "red",
+                          top: "0px",
+                          left: "0px",
                       }}
-                         className="subtitle-text"
-                         onDoubleClick={() => {
-                             getSelectedTextObject(textElement.id)
-                             setIsHidden(false)
-                         }}>
+                  >
+                      <Draggable
+                          bounds="#viewport"
+                          key={textElement.id}
+                          position={{ x: textElement.posX, y: textElement.posY }}
+                          onDrag={(event, data) => {
+                              handleTextPosChange(event, data, textElement.id)
+                              getSelectedTextObject(textElement.id)
+                          }}>
+                      <pre style={{position: 'absolute',
+                          color: textElement.textColor,
+                          fontSize: `${textElement.fontSize}px`,
+                          WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
+                          WebkitTextStrokeColor: textElement.strokeColor,
+                      }}
+                           className="subtitle-text"
+                           onDoubleClick={() => {
+                               getSelectedTextObject(textElement.id)
+                               setIsHidden(false)
+                           }}>
                           {textElement.content}
                       </pre>
-                  </Draggable>
+                      </Draggable>
+                  </div>
               ))}
 
               <TextInspector TextObject={selectedTextObject}
@@ -125,6 +147,7 @@ function App() {
                              onHandleIsHiddenChange={onHandleIsHiddenChange}
                              textElements={textElements}
                              onHandleTextElementsChange={onHandleTextElementsChange}
+                             videoCurrentTime={videoCurrentTime}
               />
           </div>
           <div id="controllers">
@@ -142,14 +165,25 @@ function App() {
               </button>
               <button id="minus-5sec-button" onClick={() => {
                   video.currentTime = video.currentTime - 5}}>- 5 SEC</button>
+              <input
+                  type="number"
+                  min="0"
+                  max={video?.duration || 0}
+                  step={1/MILISECONDS_PER_SECOND}
+                  value={videoCurrentTime.toFixed(3)}
+                  onChange={(e) => {
+                      video.currentTime = Number(e.target.value);
+                      setVideoCurrentTime(Number(e.target.value))
+                  }}
+              />
         </div>
         <div id="timeline">
           <input
               type="range"
               id="timeline-range"
-              min={0}
-              max={100}
-              step="0.1"
+              min="0"
+              max="100"
+              step={100/(video?.duration * MILISECONDS_PER_SECOND) || 1}
               defaultValue={0}
               onInput={() => {timelineToCurrentTime()}}
           />
@@ -160,7 +194,20 @@ function App() {
                         getSelectedTextObject(textElement.id)
                         setIsHidden(false)
                     }}>ID: {textElement.id}</div>
-                    <div className="text-track-keyframe-area"></div>
+                    <div className="text-track-keyframe-area">
+                        {textElement.keyframes.map((keyframe) => (
+                            <div
+                                className="text-track-keyframe-area-point"
+                                key={keyframe.time}
+                                hint={keyframe.time}
+                                style={{
+                                    left: `${(keyframe.time/video.duration) * 100}%`,
+                                }}
+                            >
+                                KF
+                            </div>
+                        ))}
+                    </div>
                 </div>
             ))}
 

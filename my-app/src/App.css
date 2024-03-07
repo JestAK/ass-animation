@@ -141,6 +141,40 @@ body{
   margin: 2px 0;
   background-color: #2f2f2f;
   border-radius: 3px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point{
+  position: absolute;
+  max-width: 100%;
+  height: 70%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background-color: #3498db;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  font-size: 10px;
+  color: white;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+#timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point:hover::after{
+  content: attr(hint);
+  display: block;
+  position: absolute;
+  top: -30px; /* Adjust this value to move the tooltip above the object */
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid black;
+  background: #181818;
+  padding: 5px;
+  z-index: 1;
 }
 
 #add-text{
@@ -165,7 +199,9 @@ body{
 
 #text-inspector{
   min-height: 300px;
+  max-height: 600px;
   min-width: 200px;
+  max-width: 300px;
   border-radius: 5px;
   background-color: #2a2a2a;
   color: white;
@@ -175,8 +211,12 @@ body{
   right: 5px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   padding: 10px;
+  overflow-y: auto;
+}
+
+#text-inspector > *{
+  flex-shrink: 0;
 }
 
 #text-inspector p{
@@ -195,6 +235,13 @@ body{
 }
 
 #text-inspector #close-button{
+  background-color: #3d3d3d;
+  border-radius: 5px;
+  padding: 5px;
+  margin-top: 15px;
+}
+
+#text-inspector #toggle-keyframe-button{
   background-color: #3d3d3d;
   border-radius: 5px;
   padding: 5px;
