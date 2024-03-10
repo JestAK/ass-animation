@@ -77,8 +77,11 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                 posX: TextObject.posX,
                 posY: TextObject.posY,
                 fontSize: TextObject.fontSize,
-                sizeX: TextObject.sizeX,
-                sizeY: TextObject.sizeY,
+                scaleX: TextObject.scaleX,
+                scaleY: TextObject.scaleY,
+                rotateX: TextObject.rotateX,
+                rotateY: TextObject.rotateY,
+                rotateZ: TextObject.rotateZ,
             });
         }
 
@@ -100,6 +103,23 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
             newTextElements[index].scaleX = newScale;
         } else if (name === "scale-y") {
             newTextElements[index].scaleY = newScale;
+        }
+
+        onHandleTextElementsChange(newTextElements);
+    }
+
+    const changeTextElementRotateXYZ = (e, id) => {
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+        const { name, value } = e.target;
+        const newRotate = parseFloat(value) || 0;
+
+        if (name === "rotate-x") {
+            newTextElements[index].rotateX = newRotate;
+        } else if (name === "rotate-y") {
+            newTextElements[index].rotateY = newRotate;
+        } else if (name === "rotate-z") {
+            newTextElements[index].rotateZ = newRotate;
         }
 
         onHandleTextElementsChange(newTextElements);
@@ -181,11 +201,12 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   minLength="1"
                   maxLength="3"
                   min="0"
-                  value={TextObject.fontSize}
+                  step="0.01"
+                  value={TextObject.scaleX}
                   onChange={(e) => changeTextElementSizeXY(e, TextObject.id)}
               />
 
-              <label htmlFor="scale-x">Scale Y:</label>
+              <label htmlFor="scale-y">Scale Y:</label>
               <input
                   type="number"
                   id="scale-y"
@@ -194,8 +215,42 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   minLength="1"
                   maxLength="3"
                   min="0"
-                  value={TextObject.fontSize}
+                  step="0.01"
+                  value={TextObject.scaleY}
                   onChange={(e) => changeTextElementSizeXY(e, TextObject.id)}
+              />
+
+              <label htmlFor="rotate-x">Rotate X:</label>
+              <input
+                  type="number"
+                  id="rotate-x"
+                  name="rotate-x"
+                  required
+                  minLength="1"
+                  value={TextObject.rotateX}
+                  onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
+              />
+
+              <label htmlFor="rotate-y">Rotate Y:</label>
+              <input
+                  type="number"
+                  id="rotate-y"
+                  name="rotate-y"
+                  required
+                  minLength="1"
+                  value={TextObject.rotateY}
+                  onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
+              />
+
+              <label htmlFor="rotate-z">Rotate Z:</label>
+              <input
+                  type="number"
+                  id="rotate-z"
+                  name="rotate-z"
+                  required
+                  minLength="1"
+                  value={TextObject.rotateZ}
+                  onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
               />
 
               <label htmlFor="stroke-thickness">Stroke thickness:</label>
@@ -245,7 +300,13 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                                   <p>Time: {keyframe.time}<br/>
                                       X: {keyframe.posX}<br/>
                                       Y: {keyframe.posY}<br/>
-                                      Font size: {keyframe.fontSize}</p>
+                                      Font size: {keyframe.fontSize}<br/>
+                                      ScaleX: {keyframe.scaleX}<br/>
+                                      ScaleY: {keyframe.scaleY}<br/>
+                                      RotateX: {keyframe.rotateX}<br/>
+                                      RotateY: {keyframe.rotateY}<br/>
+                                      RotateZ: {keyframe.rotateZ}
+                                  </p>
                               </details>
                           ))}
                       </details>

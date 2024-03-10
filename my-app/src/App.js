@@ -20,9 +20,12 @@ function App() {
             this.fontSize = 20;
             this.scaleX = 1;
             this.scaleY = 1;
+            this.rotateX = 0;
+            this.rotateY = 0;
+            this.rotateZ = 0;
             this.strokeThickness = 3;
-            this.strokeColor = "#000000"
-            setTextIdCounter(textIdCounter + 1)
+            this.strokeColor = "#000000";
+            setTextIdCounter(textIdCounter + 1);
         }
     }
 
@@ -105,41 +108,34 @@ function App() {
               </video>
 
               {textElements.map((textElement) => (
-                  <div
-                      id="draggable-wrapper"
-                      style={{
-                          position: "absolute",
-                          // transform: `translate(0px 0px) scaleX(${textElement.scaleX}) scaleY(${textElement.scaleY})`,
-                          width: "100px",
-                          height: "100px",
-                          backgroundColor: "red",
-                          top: "0px",
-                          left: "0px",
+                  <Draggable
+                      bounds="#viewport"
+                      key={textElement.id}
+                      defaultPosition={{x: 500, y: 500}}
+                      position={{ x: textElement.posX, y: textElement.posY }}
+                      onDrag={(event, data) => {
+                          handleTextPosChange(event, data, textElement.id)
+                          getSelectedTextObject(textElement.id)
                       }}
                   >
-                      <Draggable
-                          bounds="#viewport"
-                          key={textElement.id}
-                          position={{ x: textElement.posX, y: textElement.posY }}
-                          onDrag={(event, data) => {
-                              handleTextPosChange(event, data, textElement.id)
-                              getSelectedTextObject(textElement.id)
-                          }}>
-                      <pre style={{position: 'absolute',
-                          color: textElement.textColor,
-                          fontSize: `${textElement.fontSize}px`,
-                          WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
-                          WebkitTextStrokeColor: textElement.strokeColor,
-                      }}
-                           className="subtitle-text"
-                           onDoubleClick={() => {
-                               getSelectedTextObject(textElement.id)
-                               setIsHidden(false)
-                           }}>
-                          {textElement.content}
-                      </pre>
-                      </Draggable>
-                  </div>
+                      <div className="draggable-wrapper">
+                          <pre style={{
+                              position: 'absolute',
+                              color: textElement.textColor,
+                              fontSize: `${textElement.fontSize}px`,
+                              WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
+                              WebkitTextStrokeColor: textElement.strokeColor,
+                              transform: `scaleX(${textElement.scaleX}) scaleY(${textElement.scaleY}) rotateX(${textElement.rotateX}deg) rotateY(${textElement.rotateY}deg) rotateZ(${textElement.rotateZ}deg)`
+                          }}
+                               className="subtitle-text"
+                               onDoubleClick={() => {
+                                   getSelectedTextObject(textElement.id)
+                                   setIsHidden(false)
+                               }}>
+                                    {textElement.content}
+                          </pre>
+                      </div>
+                  </Draggable>
               ))}
 
               <TextInspector TextObject={selectedTextObject}
