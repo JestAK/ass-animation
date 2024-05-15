@@ -2,7 +2,7 @@ import anime from "animejs";
 
 import TextInspector from "./TextInspector";
 import './App.css';
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Draggable from "react-draggable";
 
 function App() {
@@ -31,23 +31,46 @@ function App() {
 
     //initialise variables
     const MILISECONDS_PER_SECOND = 1000;
-    const [video, setVideo] = useState(null);
+    const [video, setVideo] = useState({});
     const [videoCurrentTime, setVideoCurrentTime] = useState(0);
     const [videoDuration, setVideoDuration] = useState(0);
-    const [timelineRange, setTimelineRange] = useState(null);
+    const [timelineRange, setTimelineRange] = useState({});
     const [textElements, setTextElements] = useState([]);
     const [textIdCounter, setTextIdCounter] = useState(0);
     const [isHidden, setIsHidden] = useState(true);
-    const [selectedTextObject, setSelectedTextObject] = useState({})
+    const [selectedTextObject, setSelectedTextObject] = useState({});
+    const isAllowChangeTimeline = useRef(true);
+    const animationTimeline = anime.timeline({
+        easing: "linear",
+        direction: "normal",
+        autoplay: false,
+    });
 
     //get video and timeline-range
     useEffect(() => {
-        const videoElement = document.getElementById('video')
-        setVideo(videoElement)
+        const videoElement = document.getElementById('video');
+        setVideo(videoElement);
 
-        const tlRange = document.getElementById('timeline-range')
-        setTimelineRange(tlRange)
+        const tlRange = document.getElementById('timeline-range');
+        setTimelineRange(tlRange);
     }, []);
+
+    animationTimeline.add({
+        targets: ".centers",
+        translateX: 300,
+        scale: 3,
+        duration: 1000,
+        loop: false,
+    });
+
+    if(video){
+        video.currentTime = videoCurrentTime;
+    }
+
+    if(timelineRange){
+        timelineRange.value = (videoCurrentTime / videoDuration) * 100;
+    }
+
 
     const addText = (newTextElement) => {
         const newTextElements = [...textElements];
@@ -61,7 +84,9 @@ function App() {
     }
 
     const currentTimeToTimeline = () => {
+        animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
         timelineRange.value = (video.currentTime / video.duration) * 100;
+        isAllowChangeTimeline.current = false;
     }
 
     const onHandleIsHiddenChange = (newValue) => {
@@ -97,15 +122,23 @@ function App() {
 
   return (
       <>
-        <button id="add-text" onClick={() => {addText(new TextObject(video.duration))}}>Add Text</button>
+        <button id="add-text" onClick={() => {addText(new TextObject(video?.duration))}}>Add Text</button>
           <div id="viewport">
-              <video id="video" onTimeUpdate={() => {
-                  currentTimeToTimeline()
-                  setVideoCurrentTime(video.currentTime)
-              }}>
+              <video id="video"
+                     onTimeUpdate={() => {
+                        // currentTimeToTimeline()
+                        setVideoCurrentTime(video.currentTime)
+                     }}
+                     onLoadedData={() => {
+                         setVideoDuration(video.duration);
+                     }}
+              >
                   <source src={require('./prikolyas.mp4')} type="video/mp4"/>
                   Your browser does not support the video tag.
               </video>
+
+              {/*Remove center point at the end of development*/}
+              <div className="centers"></div>
 
               {textElements.map((textElement) => (
                   <Draggable
@@ -118,9 +151,12 @@ function App() {
                           getSelectedTextObject(textElement.id)
                       }}
                   >
-                      <div className="draggable-wrapper">
+                      <div className="draggable-wrapper"
+                           style={{
+                               position: "absolute",
+                           }}
+                      >
                           <pre style={{
-                              position: 'absolute',
                               color: textElement.textColor,
                               fontSize: `${textElement.fontSize}px`,
                               WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
@@ -149,10 +185,12 @@ function App() {
           <div id="controllers">
               <button id="stop-button" onClick={() => {
                   video.pause()
+                  playPause.pause()
               }}>STOP
               </button>
               <button id="play-button" onClick={() => {
                   video.play()
+                  playPause.play()
               }}>PLAY
               </button>
               <button id="plus-5sec-button" onClick={() => {
@@ -164,11 +202,11 @@ function App() {
               <input
                   type="number"
                   min="0"
-                  max={video?.duration || 0}
+                  max={videoDuration || 0}
                   step={1/MILISECONDS_PER_SECOND}
                   value={videoCurrentTime.toFixed(3)}
                   onChange={(e) => {
-                      video.currentTime = Number(e.target.value);
+                      // video.currentTime = Number(e.target.value);
                       setVideoCurrentTime(Number(e.target.value))
                   }}
               />
@@ -179,9 +217,23 @@ function App() {
               id="timeline-range"
               min="0"
               max="100"
-              step={100/(video?.duration * MILISECONDS_PER_SECOND) || 1}
+              step={100/(videoDuration * MILISECONDS_PER_SECOND) || 1}
               defaultValue={0}
-              onInput={() => {timelineToCurrentTime()}}
+              onInput={() => {
+                  // if (isAllowChangeTimeline){
+                  //     console.log("timeline-range onInput used")
+                  //     timelineToCurrentTime();
+                  // } else{
+                  //     isAllowChangeTimeline.current = true;
+                  // }
+                  animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
+                  setVideoCurrentTime(videoDuration * (timelineRange.value / 100))
+              }}
+              onChange={() => {
+                  // console.log("timeline-range onChange used")
+                  // console.log(timelineRange.value);
+                  // animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
+              }}
           />
 
             {textElements.map((textElement) => (
@@ -212,6 +264,20 @@ function App() {
   );
 }
 
+const playPause = anime({
+    targets: '.draggable-wrapper',
+    keyframes: [
+        {translateY: -40},
+        {translateX: 250},
+        {translateY: 40},
+        {translateX: 0},
+        {translateY: 0}
+    ],
+    duration: 4000,
+    easing: 'easeOutElastic(1, .8)',
+    loop: true,
+    autoplay: false
+});
 
 export default App;
 
