@@ -147,6 +147,17 @@ body{
   justify-content: center;
 }
 
+#timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-progress{
+  position: absolute;
+  max-width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background-color: #35ce3c;
+  width: 0;
+  left: 0;
+  z-index: 9;
+}
+
 #timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point{
   position: absolute;
   max-width: 100%;
@@ -162,6 +173,7 @@ body{
   color: white;
   transform: translateX(-50%);
   cursor: pointer;
+  z-index: 10;
 }
 
 #timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point:hover::after{
@@ -254,4 +266,16 @@ body{
   border-radius: 50%;
   background-color: #a22929;
   position: absolute;
+}
+
+#add-zalupa{
+  width: 200px;
+  height: 30px;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  color: white;
+  font-weight: bold;
 }

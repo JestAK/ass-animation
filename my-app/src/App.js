@@ -1,20 +1,21 @@
 import anime from "animejs";
-
 import TextInspector from "./TextInspector";
+import VideoBlock from "./VideoBlock";
+import TimelineRange from "./TimelineRange";
+import VideoControllers from "./VideoControllers";
 import './App.css';
 import React, {useEffect, useRef, useState} from "react";
 import Draggable from "react-draggable";
 
 function App() {
 
+    // All parameters of text object
     class TextObject {
-        constructor(endTime) {
+        constructor() {
             this.id = textIdCounter;
             this.posX = 0;
             this.posY = 0;
             this.content = `Text ID - ${textIdCounter}`;
-            this.startTime = 0;
-            this.endTime = endTime;
             this.keyframes = [];
             this.textColor = "#ffffff";
             this.fontSize = 20;
@@ -30,74 +31,82 @@ function App() {
     }
 
     //initialise variables
-    const MILISECONDS_PER_SECOND = 1000;
-    const [video, setVideo] = useState({});
+    const MILLISECONDS_PER_SECOND = 1000;
+    const video = useRef(null);
     const [videoCurrentTime, setVideoCurrentTime] = useState(0);
     const [videoDuration, setVideoDuration] = useState(0);
-    const [timelineRange, setTimelineRange] = useState({});
+    const timelineRange = useRef(null);
     const [textElements, setTextElements] = useState([]);
     const [textIdCounter, setTextIdCounter] = useState(0);
     const [isHidden, setIsHidden] = useState(true);
     const [selectedTextObject, setSelectedTextObject] = useState({});
-    const isAllowChangeTimeline = useRef(true);
-    const animationTimeline = anime.timeline({
-        easing: "linear",
-        direction: "normal",
-        autoplay: false,
-    });
+    const [animations, setAnimations] = useState([])
+    const [animationTimeline, setAnimationTimeline] = useState(null)
 
     //get video and timeline-range
     useEffect(() => {
-        const videoElement = document.getElementById('video');
-        setVideo(videoElement);
+        if (video.current) {
+            setVideoDuration(video.current.duration);
+            setAnimationTimeline(anime.timeline({
+                easing: "linear",
+                direction: "normal",
+                autoplay: false,
+                duration: videoDuration * MILLISECONDS_PER_SECOND
+            }))
+        }
+    }, [video.current?.duration]);
 
-        const tlRange = document.getElementById('timeline-range');
-        setTimelineRange(tlRange);
-    }, []);
+    useEffect(() => {
+        const newTimeline = anime.timeline({
+            easing: "linear",
+            direction: "normal",
+            autoplay: false,
+            duration: videoDuration * MILLISECONDS_PER_SECOND
+        });
 
-    animationTimeline.add({
-        targets: ".centers",
-        translateX: 300,
-        scale: 3,
-        duration: 1000,
-        loop: false,
-    });
+        console.log(animations)
 
-    if(video){
-        video.currentTime = videoCurrentTime;
-    }
+        if (animations){
+            animations.forEach((animeObj) => {
+                const targetId = animeObj.target.match(/\d+/)[0]
+                newTimeline.add({
+                    targets: animeObj.target,
+                    keyframes: animeObj.keyframes,
+                    change: function(anim) {
+                        console.log(anim.animations)
+                        changeTextObjectProperties(targetId, anim.animations)
+                    }
+                });
+            })
 
-    if(timelineRange){
-        timelineRange.value = (videoCurrentTime / videoDuration) * 100;
-    }
+            setAnimationTimeline(newTimeline)
+        }
+        console.log("TEMP TIMELINE:")
+        console.log(newTimeline)
 
+        console.log("TIMELINE:")
+        console.log(animationTimeline)
+    }, [animations]);
 
+    // Adding new text object
     const addText = (newTextElement) => {
         const newTextElements = [...textElements];
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
+        console.log(animationTimeline)
+        console.log(animationTimeline.animatables);
     };
 
-    const timelineToCurrentTime = () => {
-        video.currentTime = video.duration * (timelineRange.value / 100);
-        console.log(video.currentTime)
-    }
-
-    const currentTimeToTimeline = () => {
-        animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
-        timelineRange.value = (video.currentTime / video.duration) * 100;
-        isAllowChangeTimeline.current = false;
-    }
-
+    // Hidden flag for TextInspector
     const onHandleIsHiddenChange = (newValue) => {
         setIsHidden(newValue)
     }
 
     const onHandleTextElementsChange = (newValue) => {
         setTextElements(newValue)
-        console.log(textElements)
     }
 
+    // Getting pointer to text object
     const getSelectedTextObject = (id) => {
         const foundObject = textElements.find(obj => obj.id === id);
 
@@ -108,38 +117,175 @@ function App() {
         }
     }
 
+    // Updates text object position
     const handleTextPosChange = (event, data, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
+        const parentRect = document.getElementById('viewport').getBoundingClientRect();
         console.log(data)
         newTextElements[index].posX = data.x
         newTextElements[index].posY = data.y
         console.log(newTextElements[index].posX)
-        console.log(data.x)
+        console.log(data)
 
         setTextElements(newTextElements);
     }
 
+    const onHandleTimeUpdate = () => {
+        if (video.current) {
+            const currentTime = video.current.currentTime;
+            animationTimeline.seek((currentTime / videoDuration) * animationTimeline.duration);
+            setVideoCurrentTime(currentTime);
+        }
+    }
+
+    const onHandleRangeUpdate = () => {
+        if (timelineRange.current && video.current) {
+            const newTime = (timelineRange.current.value / 100) * video.current.duration;
+            setVideoCurrentTime(newTime);
+            video.current.currentTime = newTime;
+            animationTimeline.seek((newTime / videoDuration) * animationTimeline.duration);
+        }
+    };
+
+    const onHandlePlay = () => {
+        if (video.current){
+            video.current.play()
+            animationTimeline.play()
+        }
+    }
+
+    const onHandlePause = () => {
+        if (video.current){
+            video.current.pause()
+            animationTimeline.pause()
+        }
+    }
+
+    const onHandleControllerInputUpdate = (newTime) => {
+        if (video.current){
+            setVideoCurrentTime(newTime);
+            video.current.currentTime = newTime;
+        }
+    }
+
+    const updateAnimationObjectKeyframes = (textElementIndex) => {
+        const textElement = textElements[textElementIndex]
+        const id = textElement.id
+        const keyframes = textElement.keyframes
+        let firstKF = keyframes[0]
+        const newAnimations = [...animations]
+        let animationIndex = newAnimations.findIndex((animation) => animation.target === `#text-wrapper-${id}`);
+        if (animationIndex !== -1){
+            newAnimations[animationIndex].keyframes = keyframes
+        } else {
+            newAnimations.push({
+                target: `#text-wrapper-${id}`,
+                keyframes: keyframes
+            })
+        }
+
+        animationIndex = newAnimations.findIndex((animation) => animation.target === `#text-wrapper-${id}`);
+
+        console.log(animationIndex)
+        console.log(newAnimations)
+
+        newAnimations[animationIndex].keyframes.forEach((keyframe, index) => {
+            if (index === 0){
+                keyframe.duration = keyframe.timeKF * MILLISECONDS_PER_SECOND
+            } else {
+                keyframe.duration = (keyframe.timeKF - newAnimations[animationIndex].keyframes[index - 1].timeKF) * MILLISECONDS_PER_SECOND
+            }
+        });
+
+        setAnimations(newAnimations);
+    }
+
+    const getPropertyByPropName = (properties, propName) => {
+        const propIndex = properties.findIndex((property) => property.property === propName)
+        return parseFloat(properties[propIndex].currentValue)
+    }
+
+    const changeTextObjectProperties = (textElementId, properties) => {
+        const index = textElements.findIndex((element) => element.id === Number(textElementId));
+        const newTextElements = [...textElements];
+
+        const translateX = getPropertyByPropName(properties, "translateX")
+        const translateY = getPropertyByPropName(properties, "translateY")
+        const fontSize = getPropertyByPropName(properties, "fontSize")
+        const scaleX = getPropertyByPropName(properties, "scaleX")
+        const scaleY = getPropertyByPropName(properties, "scaleY")
+        const rotateX = getPropertyByPropName(properties, "rotateX")
+        const rotateY = getPropertyByPropName(properties, "rotateY")
+        const rotateZ = getPropertyByPropName(properties, "rotateZ")
+
+        newTextElements[index].posX = translateX
+        newTextElements[index].posY = translateY
+        newTextElements[index].fontSize = fontSize
+        newTextElements[index].scaleX = scaleX
+        newTextElements[index].scaleY = scaleY
+        newTextElements[index].rotateX = rotateX
+        newTextElements[index].rotateY = rotateY
+        newTextElements[index].rotateZ = rotateZ
+
+        setTextElements(newTextElements);
+    }
+
+    const addZalupa = () =>{
+        const tempZalupa = anime.timeline({
+            easing: "linear",
+            direction: "normal",
+            autoplay: false,
+            duration: videoDuration * MILLISECONDS_PER_SECOND
+        })
+
+        tempZalupa.add({
+            targets: '.centers',
+            keyframes: [
+                {
+                    translateX: 0,
+                    delay: 0,
+                    duration: 2999
+                },
+                {
+                    translateX: 300,
+                    delay: 3000,
+                    duration: 3999
+                },
+                {
+                    translateX: 100,
+                    delay: 7000,
+                    duration: 1
+                },
+                {
+                    translateX: 200,
+                    delay: 10000,
+                    duration: 1
+                }
+            ]
+        })
+
+        setAnimationTimeline(tempZalupa)
+        console.log("ZALUPA:")
+        console.log(tempZalupa)
+    }
+
   return (
       <>
-        <button id="add-text" onClick={() => {addText(new TextObject(video?.duration))}}>Add Text</button>
+          <button id="add-zalupa" onClick={() => {addZalupa()}}>Add zalupa</button>
+        <button id="add-text" onClick={() => {addText(new TextObject(video.current?.duration))}}>Add Text</button>
           <div id="viewport">
-              <video id="video"
-                     onTimeUpdate={() => {
-                        // currentTimeToTimeline()
-                        setVideoCurrentTime(video.currentTime)
-                     }}
-                     onLoadedData={() => {
-                         setVideoDuration(video.duration);
-                     }}
-              >
-                  <source src={require('./prikolyas.mp4')} type="video/mp4"/>
-                  Your browser does not support the video tag.
-              </video>
+              <VideoBlock ref = {video}
+                          onHandleTimeUpdate = {onHandleTimeUpdate}
+                          onLoadedMetadata={() => setVideoDuration(video.current.duration)}
+              />
 
               {/*Remove center point at the end of development*/}
-              <div className="centers"></div>
+              <div className="centers" style={{
+                  transform: 'translateX(-50px)'
+              }}></div>
 
+              {/*Drawing all text objects*/}
               {textElements.map((textElement) => (
                   <Draggable
                       bounds="#viewport"
@@ -152,6 +298,7 @@ function App() {
                       }}
                   >
                       <div className="draggable-wrapper"
+                           id={`text-wrapper-${textElement.id}`}
                            style={{
                                position: "absolute",
                            }}
@@ -180,62 +327,24 @@ function App() {
                              textElements={textElements}
                              onHandleTextElementsChange={onHandleTextElementsChange}
                              videoCurrentTime={videoCurrentTime}
+                             updateAnimationObjectKeyframes={updateAnimationObjectKeyframes}
               />
           </div>
-          <div id="controllers">
-              <button id="stop-button" onClick={() => {
-                  video.pause()
-                  playPause.pause()
-              }}>STOP
-              </button>
-              <button id="play-button" onClick={() => {
-                  video.play()
-                  playPause.play()
-              }}>PLAY
-              </button>
-              <button id="plus-5sec-button" onClick={() => {
-                  video.currentTime = video.currentTime + 5
-              }}>+ 5 SEC
-              </button>
-              <button id="minus-5sec-button" onClick={() => {
-                  video.currentTime = video.currentTime - 5}}>- 5 SEC</button>
-              <input
-                  type="number"
-                  min="0"
-                  max={videoDuration || 0}
-                  step={1/MILISECONDS_PER_SECOND}
-                  value={videoCurrentTime.toFixed(3)}
-                  onChange={(e) => {
-                      // video.currentTime = Number(e.target.value);
-                      setVideoCurrentTime(Number(e.target.value))
-                  }}
-              />
-        </div>
+            <VideoControllers video={video}
+                              videoDuration={videoDuration}
+                              videoCurrentTime={videoCurrentTime}
+                              MILLISECONDS_PER_SECOND={MILLISECONDS_PER_SECOND}
+                              onHandlePlay={onHandlePlay}
+                              onHandlePause={onHandlePause}
+                              onHandleControllerInputUpdate={onHandleControllerInputUpdate}
+            />
         <div id="timeline">
-          <input
-              type="range"
-              id="timeline-range"
-              min="0"
-              max="100"
-              step={100/(videoDuration * MILISECONDS_PER_SECOND) || 1}
-              defaultValue={0}
-              onInput={() => {
-                  // if (isAllowChangeTimeline){
-                  //     console.log("timeline-range onInput used")
-                  //     timelineToCurrentTime();
-                  // } else{
-                  //     isAllowChangeTimeline.current = true;
-                  // }
-                  animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
-                  setVideoCurrentTime(videoDuration * (timelineRange.value / 100))
-              }}
-              onChange={() => {
-                  // console.log("timeline-range onChange used")
-                  // console.log(timelineRange.value);
-                  // animationTimeline.seek((timelineRange.value / 100) * animationTimeline.duration);
-              }}
-          />
-
+            <TimelineRange ref={timelineRange}
+                           onHandleRangeUpdate={onHandleRangeUpdate}
+                           videoDuration={videoDuration}
+                           videoCurrentTime={videoCurrentTime}
+                           MILLISECONDS_PER_SECOND={MILLISECONDS_PER_SECOND}
+            />
             {textElements.map((textElement) => (
                 <div className="text-track" key={textElement.id}>
                     <div className="text-track-id" onClick={() => {
@@ -243,13 +352,19 @@ function App() {
                         setIsHidden(false)
                     }}>ID: {textElement.id}</div>
                     <div className="text-track-keyframe-area">
+                        <div
+                            className="text-track-keyframe-area-progress"
+                            style={{
+                                width: `${(videoCurrentTime/videoDuration) * 100}%`,
+                            }}
+                        ></div>
                         {textElement.keyframes.map((keyframe) => (
                             <div
                                 className="text-track-keyframe-area-point"
-                                key={keyframe.time}
-                                hint={keyframe.time}
+                                key={keyframe.timeKF}
+                                hint={keyframe.timeKF}
                                 style={{
-                                    left: `${(keyframe.time/video.duration) * 100}%`,
+                                    left: `${(keyframe.timeKF/videoDuration) * 100}%`,
                                 }}
                             >
                                 KF
@@ -263,21 +378,6 @@ function App() {
       </>
   );
 }
-
-const playPause = anime({
-    targets: '.draggable-wrapper',
-    keyframes: [
-        {translateY: -40},
-        {translateX: 250},
-        {translateY: 40},
-        {translateX: 0},
-        {translateY: 0}
-    ],
-    duration: 4000,
-    easing: 'easeOutElastic(1, .8)',
-    loop: true,
-    autoplay: false
-});
 
 export default App;
 

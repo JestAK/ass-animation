@@ -1,7 +1,7 @@
 import './App.css';
 import React from "react";
 
-function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange, videoCurrentTime}) {
+const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange, videoCurrentTime, updateAnimationObjectKeyframes}) => {
 
     const isHiddenChange = () => {
         const newValue = true
@@ -69,28 +69,31 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
 
-        if (TextObject.keyframes.some(keyframe => keyframe?.time === videoCurrentTime.toFixed(3))) {
-            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.time !== currentTime.toFixed(3))
+        if (TextObject.keyframes.some(keyframe => keyframe?.timeKF === videoCurrentTime.toFixed(3))) {
+            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.timeKF !== currentTime.toFixed(3))
         } else {
             newTextElements[index].keyframes.push({
-                time: currentTime.toFixed(3),
-                posX: TextObject.posX,
-                posY: TextObject.posY,
+                timeKF: currentTime.toFixed(3),
+                translateX: TextObject.posX,
+                translateY: TextObject.posY,
                 fontSize: TextObject.fontSize,
                 scaleX: TextObject.scaleX,
                 scaleY: TextObject.scaleY,
                 rotateX: TextObject.rotateX,
                 rotateY: TextObject.rotateY,
                 rotateZ: TextObject.rotateZ,
+                duration: 1000,
             });
         }
 
-        newTextElements[index].keyframes.sort((a, b) => a.time - b.time);
+        newTextElements[index].keyframes.sort((a, b) => a.timeKF - b.timeKF);
 
         console.log("Keyframe added")
         console.log(newTextElements[index].keyframes)
+        console.log(newTextElements)
 
         onHandleTextElementsChange(newTextElements);
+        updateAnimationObjectKeyframes(index);
     }
 
     const changeTextElementSizeXY = (e, id) => {
@@ -295,11 +298,11 @@ function TextInspector({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                       <details>
                           <summary>Show all keyframes</summary>
                           {TextObject.keyframes.map((keyframe, index) => (
-                              <details key={keyframe.time}>
+                              <details key={keyframe.timeKF}>
                                   <summary>Keyframe {index}</summary>
-                                  <p>Time: {keyframe.time}<br/>
-                                      X: {keyframe.posX}<br/>
-                                      Y: {keyframe.posY}<br/>
+                                  <p>Time: {keyframe.timeKF}<br/>
+                                      X: {keyframe.translateX}<br/>
+                                      Y: {keyframe.translateY}<br/>
                                       Font size: {keyframe.fontSize}<br/>
                                       ScaleX: {keyframe.scaleX}<br/>
                                       ScaleY: {keyframe.scaleY}<br/>
