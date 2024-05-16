@@ -15,6 +15,12 @@ button, input[type="submit"], input[type="reset"] {
   outline: inherit;
 }
 
+button, .subtitle-text {
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 body{
   display: flex;
   flex-direction: column;

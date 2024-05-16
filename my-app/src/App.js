@@ -41,42 +41,32 @@ function App() {
     const [isHidden, setIsHidden] = useState(true);
     const [selectedTextObject, setSelectedTextObject] = useState({});
     const [animations, setAnimations] = useState([])
-    const [animationTimeline, setAnimationTimeline] = useState(null)
+    const [animationTimeline, setAnimationTimeline] = useState([])
+    const [isDraggable, setIsDraggable] = useState(false)
 
     //get video and timeline-range
     useEffect(() => {
         if (video.current) {
             setVideoDuration(video.current.duration);
-            setAnimationTimeline(anime.timeline({
-                easing: "linear",
-                direction: "normal",
-                autoplay: false,
-                duration: videoDuration * MILLISECONDS_PER_SECOND
-            }))
         }
     }, [video.current?.duration]);
 
     useEffect(() => {
-        const newTimeline = anime.timeline({
-            easing: "linear",
-            direction: "normal",
-            autoplay: false,
-            duration: videoDuration * MILLISECONDS_PER_SECOND
-        });
+        const newTimeline = [...animationTimeline]
 
         console.log(animations)
 
         if (animations){
             animations.forEach((animeObj) => {
                 const targetId = animeObj.target.match(/\d+/)[0]
-                newTimeline.add({
+                newTimeline.push(anime({
                     targets: animeObj.target,
                     keyframes: animeObj.keyframes,
                     change: function(anim) {
                         console.log(anim.animations)
                         changeTextObjectProperties(targetId, anim.animations)
                     }
-                });
+                }));
             })
 
             setAnimationTimeline(newTimeline)
@@ -94,7 +84,6 @@ function App() {
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
         console.log(animationTimeline)
-        console.log(animationTimeline.animatables);
     };
 
     // Hidden flag for TextInspector
@@ -121,7 +110,6 @@ function App() {
     const handleTextPosChange = (event, data, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        const parentRect = document.getElementById('viewport').getBoundingClientRect();
         console.log(data)
         newTextElements[index].posX = data.x
         newTextElements[index].posY = data.y
@@ -134,7 +122,11 @@ function App() {
     const onHandleTimeUpdate = () => {
         if (video.current) {
             const currentTime = video.current.currentTime;
-            animationTimeline.seek((currentTime / videoDuration) * animationTimeline.duration);
+
+            // animationTimeline.seek((currentTime / videoDuration) * animationTimeline.duration);
+            animationTimeline.forEach(animation => {
+                animation.seek(currentTime * MILLISECONDS_PER_SECOND); // Convert to milliseconds for Anime.js
+            });
             setVideoCurrentTime(currentTime);
         }
     }
@@ -144,21 +136,28 @@ function App() {
             const newTime = (timelineRange.current.value / 100) * video.current.duration;
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
-            animationTimeline.seek((newTime / videoDuration) * animationTimeline.duration);
+            animationTimeline.forEach(animation => {
+                animation.seek(newTime * MILLISECONDS_PER_SECOND); // Convert to milliseconds for Anime.js
+            });
+            // animationTimeline.seek((newTime / videoDuration) * animationTimeline.duration);
         }
     };
 
     const onHandlePlay = () => {
         if (video.current){
             video.current.play()
-            animationTimeline.play()
+            animationTimeline.forEach(animation => {
+                animation.play();
+            });
         }
     }
 
     const onHandlePause = () => {
         if (video.current){
             video.current.pause()
-            animationTimeline.pause()
+            animationTimeline.forEach(animation => {
+                animation.pause();
+            });
         }
     }
 
@@ -173,7 +172,6 @@ function App() {
         const textElement = textElements[textElementIndex]
         const id = textElement.id
         const keyframes = textElement.keyframes
-        let firstKF = keyframes[0]
         const newAnimations = [...animations]
         let animationIndex = newAnimations.findIndex((animation) => animation.target === `#text-wrapper-${id}`);
         if (animationIndex !== -1){
@@ -181,7 +179,9 @@ function App() {
         } else {
             newAnimations.push({
                 target: `#text-wrapper-${id}`,
-                keyframes: keyframes
+                keyframes: keyframes,
+                delay: 0,
+                easing: "linear"
             })
         }
 
@@ -232,38 +232,35 @@ function App() {
     }
 
     const addZalupa = () =>{
-        const tempZalupa = anime.timeline({
-            easing: "linear",
-            direction: "normal",
-            autoplay: false,
-            duration: videoDuration * MILLISECONDS_PER_SECOND
-        })
+        const tempZalupa = [...animationTimeline]
 
-        tempZalupa.add({
+        tempZalupa.push(anime({
             targets: '.centers',
             keyframes: [
                 {
                     translateX: 0,
                     delay: 0,
-                    duration: 2999
+                    duration: 3000
                 },
                 {
                     translateX: 300,
-                    delay: 3000,
-                    duration: 3999
+                    delay: 0,
+                    duration: 4000
                 },
                 {
                     translateX: 100,
-                    delay: 7000,
-                    duration: 1
+                    delay: 0,
+                    duration: 2000
                 },
                 {
                     translateX: 200,
-                    delay: 10000,
-                    duration: 1
+                    delay: 0,
+                    duration: 2000
                 }
-            ]
-        })
+            ],
+            easing: "linear",
+            delay: 0
+        }))
 
         setAnimationTimeline(tempZalupa)
         console.log("ZALUPA:")
@@ -282,7 +279,7 @@ function App() {
 
               {/*Remove center point at the end of development*/}
               <div className="centers" style={{
-                  transform: 'translateX(-50px)'
+                  transform: 'translateX(0px)'
               }}></div>
 
               {/*Drawing all text objects*/}
@@ -292,6 +289,7 @@ function App() {
                       key={textElement.id}
                       defaultPosition={{x: 500, y: 500}}
                       position={{ x: textElement.posX, y: textElement.posY }}
+                      disabled={!isDraggable}
                       onDrag={(event, data) => {
                           handleTextPosChange(event, data, textElement.id)
                           getSelectedTextObject(textElement.id)
@@ -310,6 +308,8 @@ function App() {
                               WebkitTextStrokeColor: textElement.strokeColor,
                               transform: `scaleX(${textElement.scaleX}) scaleY(${textElement.scaleY}) rotateX(${textElement.rotateX}deg) rotateY(${textElement.rotateY}deg) rotateZ(${textElement.rotateZ}deg)`
                           }}
+                               onMouseEnter={() => {setIsDraggable(true)}}
+                               onMouseLeave={() => {setIsDraggable(false)}}
                                className="subtitle-text"
                                onDoubleClick={() => {
                                    getSelectedTextObject(textElement.id)
