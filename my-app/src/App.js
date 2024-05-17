@@ -33,16 +33,19 @@ function App() {
     //initialise variables
     const MILLISECONDS_PER_SECOND = 1000;
     const video = useRef(null);
+    const [videoSource, setVideoSource] = useState(null);
     const [videoCurrentTime, setVideoCurrentTime] = useState(0);
     const [videoDuration, setVideoDuration] = useState(0);
     const timelineRange = useRef(null);
     const [textElements, setTextElements] = useState([]);
+    const textElementsRef = useRef(textElements);
     const [textIdCounter, setTextIdCounter] = useState(0);
     const [isHidden, setIsHidden] = useState(true);
     const [selectedTextObject, setSelectedTextObject] = useState({});
     const [animations, setAnimations] = useState([])
     const [animationTimeline, setAnimationTimeline] = useState([])
     const [isDraggable, setIsDraggable] = useState(false)
+    const fileInput = useRef(null)
 
     //get video and timeline-range
     useEffect(() => {
@@ -52,30 +55,40 @@ function App() {
     }, [video.current?.duration]);
 
     useEffect(() => {
+        textElementsRef.current = textElements;
+    }, [textElements]);
+
+    useEffect(() => {
         const newTimeline = [...animationTimeline]
 
-        console.log(animations)
+        console.log("INSIDE USE EFFECTS")
+        console.log(textElements)
 
         if (animations){
+            const latestTextElements = textElementsRef.current
             animations.forEach((animeObj) => {
-                const targetId = animeObj.target.match(/\d+/)[0]
+
+                // Wrapper to get React variables, which is out of Anime.js scope
+                const wrapper = (anim) => {
+                    changeTextObjectProperties(animeObj.animeElementId, anim.animations, textElementsRef.current);
+                };
+
                 newTimeline.push(anime({
                     targets: animeObj.target,
                     keyframes: animeObj.keyframes,
-                    change: function(anim) {
-                        console.log(anim.animations)
-                        changeTextObjectProperties(targetId, anim.animations)
-                    }
+                    easing: "linear",
+                    autoplay: false,
+                    change: wrapper
                 }));
             })
 
             setAnimationTimeline(newTimeline)
         }
-        console.log("TEMP TIMELINE:")
-        console.log(newTimeline)
-
-        console.log("TIMELINE:")
-        console.log(animationTimeline)
+        // console.log("TEMP TIMELINE:")
+        // console.log(newTimeline)
+        //
+        // console.log("TIMELINE:")
+        // console.log(animationTimeline)
     }, [animations]);
 
     // Adding new text object
@@ -83,8 +96,12 @@ function App() {
         const newTextElements = [...textElements];
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
-        console.log(animationTimeline)
+        // console.log(animationTimeline)
     };
+
+    const getLatestTextElements = () => {
+        return textElements
+    }
 
     // Hidden flag for TextInspector
     const onHandleIsHiddenChange = (newValue) => {
@@ -110,11 +127,11 @@ function App() {
     const handleTextPosChange = (event, data, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        console.log(data)
+        // console.log(data)
         newTextElements[index].posX = data.x
         newTextElements[index].posY = data.y
-        console.log(newTextElements[index].posX)
-        console.log(data)
+        // console.log(newTextElements[index].posX)
+        // console.log(data)
 
         setTextElements(newTextElements);
     }
@@ -123,9 +140,8 @@ function App() {
         if (video.current) {
             const currentTime = video.current.currentTime;
 
-            // animationTimeline.seek((currentTime / videoDuration) * animationTimeline.duration);
             animationTimeline.forEach(animation => {
-                animation.seek(currentTime * MILLISECONDS_PER_SECOND); // Convert to milliseconds for Anime.js
+                animation.seek(currentTime * MILLISECONDS_PER_SECOND);
             });
             setVideoCurrentTime(currentTime);
         }
@@ -133,13 +149,12 @@ function App() {
 
     const onHandleRangeUpdate = () => {
         if (timelineRange.current && video.current) {
-            const newTime = (timelineRange.current.value / 100) * video.current.duration;
+            const newTime = (timelineRange.current.value / 100) * videoDuration;
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
             animationTimeline.forEach(animation => {
-                animation.seek(newTime * MILLISECONDS_PER_SECOND); // Convert to milliseconds for Anime.js
+                animation.seek(newTime * MILLISECONDS_PER_SECOND);
             });
-            // animationTimeline.seek((newTime / videoDuration) * animationTimeline.duration);
         }
     };
 
@@ -173,22 +188,32 @@ function App() {
         const id = textElement.id
         const keyframes = textElement.keyframes
         const newAnimations = [...animations]
-        let animationIndex = newAnimations.findIndex((animation) => animation.target === `#text-wrapper-${id}`);
+        let animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
         if (animationIndex !== -1){
             newAnimations[animationIndex].keyframes = keyframes
         } else {
             newAnimations.push({
-                target: `#text-wrapper-${id}`,
+                target: {
+                    translateX: 0,
+                    translateY: 0,
+                    fontSize: 16,
+                    scaleX: 1,
+                    scaleY: 1,
+                    rotateX: 0,
+                    rotateY: 0,
+                    rotateZ: 0,
+                },
+                animeElementId: id,
                 keyframes: keyframes,
                 delay: 0,
                 easing: "linear"
             })
         }
 
-        animationIndex = newAnimations.findIndex((animation) => animation.target === `#text-wrapper-${id}`);
+        animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
 
-        console.log(animationIndex)
-        console.log(newAnimations)
+        // console.log(animationIndex)
+        // console.log(newAnimations)
 
         newAnimations[animationIndex].keyframes.forEach((keyframe, index) => {
             if (index === 0){
@@ -206,9 +231,13 @@ function App() {
         return parseFloat(properties[propIndex].currentValue)
     }
 
-    const changeTextObjectProperties = (textElementId, properties) => {
-        const index = textElements.findIndex((element) => element.id === Number(textElementId));
-        const newTextElements = [...textElements];
+    const changeTextObjectProperties = (textElementId, properties, latestTextElements) => {
+
+        console.log("INSIDE CHANGE FUNC:")
+        console.log(latestTextElements)
+
+        const index = textElements.findIndex((element) => element.id === textElementId);
+        const newTextElements = [...latestTextElements];
 
         const translateX = getPropertyByPropName(properties, "translateX")
         const translateY = getPropertyByPropName(properties, "translateY")
@@ -229,6 +258,8 @@ function App() {
         newTextElements[index].rotateZ = rotateZ
 
         setTextElements(newTextElements);
+        console.log("UPDATED TEXT ELEMENTS:")
+        console.log(newTextElements)
     }
 
     const addZalupa = () =>{
@@ -263,24 +294,42 @@ function App() {
         }))
 
         setAnimationTimeline(tempZalupa)
-        console.log("ZALUPA:")
-        console.log(tempZalupa)
+        // console.log("ZALUPA:")
+        // console.log(tempZalupa)
     }
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const fileURL = URL.createObjectURL(file);
+            setVideoSource(fileURL);
+        }
+    };
+
 
   return (
       <>
-          <button id="add-zalupa" onClick={() => {addZalupa()}}>Add zalupa</button>
-        <button id="add-text" onClick={() => {addText(new TextObject(video.current?.duration))}}>Add Text</button>
+          {/*<button id="add-zalupa" onClick={() => {addZalupa()}}>Add zalupa</button>*/}
+        <button id="add-text" className="main-button" onClick={() => {addText(new TextObject(video.current?.duration))}}>Add Text</button>
+          <input
+              type="file"
+              accept="video/*"
+              onChange={handleFileChange}
+              ref={fileInput}
+              style={{ display: 'none' }}
+          />
+          <button id="choose-video" className="main-button" onClick={() => {fileInput.current.click()}}>Choose Video</button>
           <div id="viewport">
               <VideoBlock ref = {video}
                           onHandleTimeUpdate = {onHandleTimeUpdate}
                           onLoadedMetadata={() => setVideoDuration(video.current.duration)}
+                          videoSource={videoSource}
               />
 
-              {/*Remove center point at the end of development*/}
-              <div className="centers" style={{
-                  transform: 'translateX(0px)'
-              }}></div>
+              {/*/!*Remove center point at the end of development*!/*/}
+              {/*<div className="centers" style={{*/}
+              {/*    transform: 'translateX(0px)'*/}
+              {/*}}></div>*/}
 
               {/*Drawing all text objects*/}
               {textElements.map((textElement) => (

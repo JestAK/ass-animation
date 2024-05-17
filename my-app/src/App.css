@@ -36,8 +36,6 @@ body{
 }
 
 #viewport #video{
-  max-height: 70%;
-  max-width: 70%;
   margin: 50px 0;
 }
 
@@ -195,23 +193,31 @@ body{
   z-index: 1;
 }
 
-#add-text{
+.main-button{
   width: 200px;
   height: 30px;
   background-color: #2a2a2a;
   border-radius: 5px;
   position: absolute;
-  top: 5px;
-  left: 5px;
   color: white;
   font-weight: bold;
 }
 
-#add-text:hover{
+#add-text{
+  top: 5px;
+  left: 5px;
+}
+
+#choose-video{
+  top: 40px;
+  left: 5px;
+}
+
+.main-button:hover{
   background-color: #363636;
 }
 
-#add-text:active{
+.main-button:active{
   background-color: #484848;
 }
 
@@ -284,4 +290,16 @@ body{
   left: 50px;
   color: white;
   font-weight: bold;
+}
+
+#no-video{
+  width: 700px;
+  aspect-ratio: 16/9;
+  background-color: #696969;
+  color: #2a2a2a;
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
