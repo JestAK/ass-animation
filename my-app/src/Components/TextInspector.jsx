@@ -285,7 +285,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   toggleCreateKeyframe(TextObject, videoCurrentTime)
               }}>
                   {
-                      (TextObject.keyframes && TextObject.keyframes.some(keyframe => keyframe?.time === videoCurrentTime.toFixed(3))) ? (
+                      (TextObject.keyframes && TextObject.keyframes.some(keyframe => keyframe?.timeKF === videoCurrentTime.toFixed(3))) ? (
                           "Delete keyframe"
                       ) : (
                           "Add keyframe"

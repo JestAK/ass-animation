@@ -24,7 +24,7 @@ function App() {
             this.rotateX = 0;
             this.rotateY = 0;
             this.rotateZ = 0;
-            this.strokeThickness = 3;
+            this.strokeThickness = 0;
             this.strokeColor = "#000000";
             setTextIdCounter(textIdCounter + 1);
         }
@@ -36,6 +36,7 @@ function App() {
     const [videoSource, setVideoSource] = useState(null);
     const [videoCurrentTime, setVideoCurrentTime] = useState(0);
     const [videoDuration, setVideoDuration] = useState(0);
+    const [videoFPS, setVideoFPS] = useState(0)
     const timelineRange = useRef(null);
     const [textElements, setTextElements] = useState([]);
     const textElementsRef = useRef(textElements);
