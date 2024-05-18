@@ -1,4 +1,4 @@
-import './App.css';
+import '../App.css';
 import React, {forwardRef, useEffect} from 'react';
 
 const TimelineRange = forwardRef(({onHandleRangeUpdate, videoDuration, videoCurrentTime, MILLISECONDS_PER_SECOND}, ref) => {

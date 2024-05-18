@@ -1,8 +1,8 @@
 import anime from "animejs";
-import TextInspector from "./TextInspector";
-import VideoBlock from "./VideoBlock";
-import TimelineRange from "./TimelineRange";
-import VideoControllers from "./VideoControllers";
+import TextInspector from "./Components/TextInspector";
+import VideoBlock from "./Components/VideoBlock";
+import TimelineRange from "./Components/TimelineRange";
+import VideoControllers from "./Components/VideoControllers";
 import './App.css';
 import React, {useEffect, useRef, useState} from "react";
 import Draggable from "react-draggable";
@@ -46,6 +46,7 @@ function App() {
     const [animationTimeline, setAnimationTimeline] = useState([])
     const [isDraggable, setIsDraggable] = useState(false)
     const fileInput = useRef(null)
+    const renderData = useRef()
 
     //get video and timeline-range
     useEffect(() => {
@@ -65,7 +66,6 @@ function App() {
         console.log(textElements)
 
         if (animations){
-            const latestTextElements = textElementsRef.current
             animations.forEach((animeObj) => {
 
                 // Wrapper to get React variables, which is out of Anime.js scope
@@ -84,11 +84,6 @@ function App() {
 
             setAnimationTimeline(newTimeline)
         }
-        // console.log("TEMP TIMELINE:")
-        // console.log(newTimeline)
-        //
-        // console.log("TIMELINE:")
-        // console.log(animationTimeline)
     }, [animations]);
 
     // Adding new text object
@@ -98,10 +93,6 @@ function App() {
         setTextElements(newTextElements);
         // console.log(animationTimeline)
     };
-
-    const getLatestTextElements = () => {
-        return textElements
-    }
 
     // Hidden flag for TextInspector
     const onHandleIsHiddenChange = (newValue) => {
@@ -149,9 +140,11 @@ function App() {
 
     const onHandleRangeUpdate = () => {
         if (timelineRange.current && video.current) {
+            onHandlePause()
             const newTime = (timelineRange.current.value / 100) * videoDuration;
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
+            console.log(convertTime(videoCurrentTime))
             animationTimeline.forEach(animation => {
                 animation.seek(newTime * MILLISECONDS_PER_SECOND);
             });
@@ -262,42 +255,6 @@ function App() {
         console.log(newTextElements)
     }
 
-    const addZalupa = () =>{
-        const tempZalupa = [...animationTimeline]
-
-        tempZalupa.push(anime({
-            targets: '.centers',
-            keyframes: [
-                {
-                    translateX: 0,
-                    delay: 0,
-                    duration: 3000
-                },
-                {
-                    translateX: 300,
-                    delay: 0,
-                    duration: 4000
-                },
-                {
-                    translateX: 100,
-                    delay: 0,
-                    duration: 2000
-                },
-                {
-                    translateX: 200,
-                    delay: 0,
-                    duration: 2000
-                }
-            ],
-            easing: "linear",
-            delay: 0
-        }))
-
-        setAnimationTimeline(tempZalupa)
-        // console.log("ZALUPA:")
-        // console.log(tempZalupa)
-    }
-
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -305,6 +262,19 @@ function App() {
             setVideoSource(fileURL);
         }
     };
+
+    const convertTime = (timeInSeconds) => {
+        const milliseconds = (timeInSeconds % 1).toFixed(3) * 1000
+        const seconds = Math.floor(timeInSeconds % 60)
+        const minutes = Math.floor(timeInSeconds / 60)
+        const hours = Math.floor(timeInSeconds / 3600)
+
+        return `${hours}:${minutes}:${seconds}:${milliseconds}`
+    }
+
+    const collectingRenderData = () => {
+        console.log("TEST")
+    }
 
 
   return (
@@ -319,6 +289,7 @@ function App() {
               style={{ display: 'none' }}
           />
           <button id="choose-video" className="main-button" onClick={() => {fileInput.current.click()}}>Choose Video</button>
+          <button id="render-ass" className="main-button" onClick={() => {console.log("RENDER")}}>Render subtitles</button>
           <div id="viewport">
               <VideoBlock ref = {video}
                           onHandleTimeUpdate = {onHandleTimeUpdate}

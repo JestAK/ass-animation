@@ -1,4 +1,4 @@
-import './App.css';
+import '../App.css';
 import React, {forwardRef} from 'react';
 
 const VideoBlock = forwardRef(({ onHandleTimeUpdate, onLoadedMetadata, videoSource }, ref) => {

@@ -1,4 +1,4 @@
-import './App.css';
+import '../App.css';
 import React from "react";
 
 const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange, videoCurrentTime, updateAnimationObjectKeyframes}) => {
@@ -82,7 +82,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                 rotateX: TextObject.rotateX,
                 rotateY: TextObject.rotateY,
                 rotateZ: TextObject.rotateZ,
-                duration: 1000,
+                duration: 1000, // Some default value
             });
         }
 

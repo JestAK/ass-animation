@@ -1,4 +1,4 @@
-import './App.css';
+import '../App.css';
 import React from "react";
 
 const VideoControllers = ({video, videoDuration, videoCurrentTime, MILLISECONDS_PER_SECOND, onHandlePlay, onHandlePause, onHandleControllerInputUpdate}) => {
@@ -24,7 +24,6 @@ const VideoControllers = ({video, videoDuration, videoCurrentTime, MILLISECONDS_
                 onChange={(e) => {
                     onHandleControllerInputUpdate(Number(e.target.value))
                 }}
-                on
             />
         </div>
     )
