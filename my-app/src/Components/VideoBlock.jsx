@@ -11,7 +11,6 @@ const VideoBlock = forwardRef(({ onHandleTimeUpdate, onLoadedMetadata, videoSour
                     id="video"
                     onTimeUpdate={onHandleTimeUpdate}
                     onLoadedMetadata={onLoadedMetadata}
-                    width="1300"
                 >
                     <source src={videoSource} type="video/mp4"/>
                     <source src={videoSource} type="video/mkv"/>

@@ -21,6 +21,22 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         onHandleTextElementsChange(newTextElements)
     }
 
+    // Return value after handling input field limits
+    const inputLimits = (target, value) => {
+
+        const min = target.hasOwnProperty("min") ? target.min : -Infinity
+        const max = target.hasOwnProperty("max") ? target.max : Infinity
+
+        if (value > max){
+            return max
+        }
+        if (value < min){
+            return min
+        }
+
+        return value
+    }
+
     const changeTextElementColor = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
@@ -31,14 +47,14 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
     const changeTextElementFontSize = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        newTextElements[index].fontSize = e.target.value;
+        newTextElements[index].fontSize = inputLimits(e.target, e.target.value) || 0;
         onHandleTextElementsChange(newTextElements)
     }
 
     const changeTextElementStrokeThickness = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        newTextElements[index].strokeThickness = e.target.value;
+        newTextElements[index].strokeThickness = inputLimits(e.target, e.target.value) || 0;
         onHandleTextElementsChange(newTextElements)
     }
 
@@ -64,43 +80,11 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         onHandleTextElementsChange(newTextElements);
     };
 
-    const toggleCreateKeyframe = (TextObject, currentTime) => {
-        const id = TextObject.id;
-        const index = textElements.findIndex((element) => element.id === id);
-        const newTextElements = [...textElements];
-
-        if (TextObject.keyframes.some(keyframe => keyframe?.timeKF === videoCurrentTime.toFixed(3))) {
-            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.timeKF !== currentTime.toFixed(3))
-        } else {
-            newTextElements[index].keyframes.push({
-                timeKF: currentTime.toFixed(3),
-                translateX: TextObject.posX,
-                translateY: TextObject.posY,
-                fontSize: TextObject.fontSize,
-                scaleX: TextObject.scaleX,
-                scaleY: TextObject.scaleY,
-                rotateX: TextObject.rotateX,
-                rotateY: TextObject.rotateY,
-                rotateZ: TextObject.rotateZ,
-                duration: 1000, // Some default value
-            });
-        }
-
-        newTextElements[index].keyframes.sort((a, b) => a.timeKF - b.timeKF);
-
-        console.log("Keyframe added")
-        console.log(newTextElements[index].keyframes)
-        console.log(newTextElements)
-
-        onHandleTextElementsChange(newTextElements);
-        updateAnimationObjectKeyframes(index);
-    }
-
     const changeTextElementSizeXY = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         const { name, value } = e.target;
-        const newScale = parseFloat(value) || 0;
+        const newScale = parseFloat(inputLimits(e.target, value)) || 0;
 
         if (name === "scale-x") {
             newTextElements[index].scaleX = newScale;
@@ -126,6 +110,49 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         }
 
         onHandleTextElementsChange(newTextElements);
+    }
+
+    const changeTextElementOpacity = (e, id) => {
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+        newTextElements[index].opacity = inputLimits(e.target, e.target.value) || 0;
+        onHandleTextElementsChange(newTextElements)
+    }
+
+    const toggleCreateKeyframe = (TextObject, currentTime) => {
+        const id = TextObject.id;
+        const index = textElements.findIndex((element) => element.id === id);
+        const newTextElements = [...textElements];
+
+        if (TextObject.keyframes.some(keyframe => keyframe?.timeKF === videoCurrentTime.toFixed(3))) {
+            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.timeKF !== currentTime.toFixed(3))
+        } else {
+            newTextElements[index].keyframes.push({
+                timeKF: currentTime.toFixed(3),
+                translateX: TextObject.posX,
+                translateY: TextObject.posY,
+                fontSize: TextObject.fontSize,
+                scaleX: TextObject.scaleX,
+                scaleY: TextObject.scaleY,
+                rotateX: TextObject.rotateX,
+                rotateY: TextObject.rotateY,
+                rotateZ: TextObject.rotateZ,
+                opacity: TextObject.opacity,
+                textColor: TextObject.textColor,
+                strokeColor: TextObject.strokeColor,
+                strokeThickness: TextObject.strokeThickness,
+                duration: 1000, // Some default value
+            });
+        }
+
+        newTextElements[index].keyframes.sort((a, b) => a.timeKF - b.timeKF);
+
+        console.log("Keyframe added")
+        console.log(newTextElements[index].keyframes)
+        console.log(newTextElements)
+
+        onHandleTextElementsChange(newTextElements);
+        updateAnimationObjectKeyframes(index);
     }
 
 
@@ -166,7 +193,8 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
               <textarea
                   id="content"
                   name="content"
-                  required minLength="1"
+                  required
+                  minLength="1"
                   value={TextObject.content}
                   onChange={(e) => changeTextElementContent(e, TextObject.id)}
               />
@@ -176,7 +204,8 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   type="color"
                   id="text-color"
                   name="text-color"
-                  required minLength="7"
+                  required
+                  minLength="7"
                   maxLength="7"
                   value={TextObject.textColor}
                   onChange={(e) => changeTextElementColor(e, TextObject.id)}
@@ -229,7 +258,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   id="rotate-x"
                   name="rotate-x"
                   required
-                  minLength="1"
                   value={TextObject.rotateX}
                   onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
               />
@@ -240,7 +268,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   id="rotate-y"
                   name="rotate-y"
                   required
-                  minLength="1"
                   value={TextObject.rotateY}
                   onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
               />
@@ -251,7 +278,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   id="rotate-z"
                   name="rotate-z"
                   required
-                  minLength="1"
                   value={TextObject.rotateZ}
                   onChange={(e) => changeTextElementRotateXYZ(e, TextObject.id)}
               />
@@ -262,9 +288,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   id="stroke-thickness"
                   name="stroke-thickness"
                   required
-                  minLength="1"
-                  maxLength="2"
-                  min="0"
                   value={TextObject.strokeThickness}
                   onChange={(e) => changeTextElementStrokeThickness(e, TextObject.id)}
               />
@@ -279,6 +302,18 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   maxLength="7"
                   value={TextObject.strokeColor}
                   onChange={(e) => changeTextElementStrokeColor(e, TextObject.id)}
+              />
+
+              <label htmlFor="opacity">Opacity:</label>
+              <input
+                  type="number"
+                  id="opacity"
+                  name="opacity"
+                  required
+                  min="0"
+                  max="1"
+                  value={TextObject.opacity}
+                  onChange={(e) => changeTextElementOpacity(e, TextObject.id)}
               />
 
               <button id="toggle-keyframe-button" onClick={() => {
@@ -308,7 +343,8 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                                       ScaleY: {keyframe.scaleY}<br/>
                                       RotateX: {keyframe.rotateX}<br/>
                                       RotateY: {keyframe.rotateY}<br/>
-                                      RotateZ: {keyframe.rotateZ}
+                                      RotateZ: {keyframe.rotateZ}<br/>
+                                      Opacity^ {keyframe.opacity}
                                   </p>
                               </details>
                           ))}
