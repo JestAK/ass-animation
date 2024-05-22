@@ -1,3 +1,5 @@
+'use strict'
+
 import '../App.css';
 import React from "react";
 
@@ -26,7 +28,7 @@ const VideoControllers = ({video, videoDuration, videoCurrentTime, MILLISECONDS_
                 }}
             />
         </div>
-    )
-}
+    );
+};
 
 export default VideoControllers;

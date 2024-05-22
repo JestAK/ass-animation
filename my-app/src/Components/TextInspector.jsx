@@ -1,69 +1,71 @@
+'use strict'
+
 import '../App.css';
 import React from "react";
 
 const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElements, onHandleTextElementsChange, videoCurrentTime, updateAnimationObjectKeyframes}) => {
 
     const isHiddenChange = () => {
-        const newValue = true
-        onHandleIsHiddenChange(newValue)
-    }
+        const newValue = true;
+        onHandleIsHiddenChange(newValue);
+    };
 
     const deleteTextElement = (id) => {
-        const newTextElements = textElements.filter(element => element.id !== id)
-        onHandleTextElementsChange(newTextElements)
-        console.log(textElements)
-    }
+        const newTextElements = textElements.filter(element => element.id !== id);
+        onHandleTextElementsChange(newTextElements);
+        console.log(textElements);
+    };
 
     const changeTextElementContent = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].content = e.target.value;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     // Return value after handling input field limits
     const inputLimits = (target, value) => {
 
-        const min = target.hasOwnProperty("min") ? target.min : -Infinity
-        const max = target.hasOwnProperty("max") ? target.max : Infinity
+        const min = target.hasOwnProperty("min") ? target.min : -Infinity;
+        const max = target.hasOwnProperty("max") ? target.max : Infinity;
 
         if (value > max){
-            return max
+            return max;
         }
         if (value < min){
-            return min
+            return min;
         }
 
-        return value
+        return value;
     }
 
     const changeTextElementColor = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].textColor = e.target.value;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     const changeTextElementFontSize = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].fontSize = inputLimits(e.target, e.target.value) || 0;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     const changeTextElementStrokeThickness = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].strokeThickness = inputLimits(e.target, e.target.value) || 0;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     const changeTextElementStrokeColor = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].strokeColor = e.target.value;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     const changeTextElementPosition = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
@@ -93,7 +95,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         }
 
         onHandleTextElementsChange(newTextElements);
-    }
+    };
 
     const changeTextElementRotateXYZ = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
@@ -110,14 +112,14 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         }
 
         onHandleTextElementsChange(newTextElements);
-    }
+    };
 
     const changeTextElementOpacity = (e, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
         newTextElements[index].opacity = inputLimits(e.target, e.target.value) || 0;
-        onHandleTextElementsChange(newTextElements)
-    }
+        onHandleTextElementsChange(newTextElements);
+    };
 
     const toggleCreateKeyframe = (TextObject, currentTime) => {
         const id = TextObject.id;
@@ -125,7 +127,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         const newTextElements = [...textElements];
 
         if (TextObject.keyframes.some(keyframe => keyframe?.timeKF === videoCurrentTime.toFixed(3))) {
-            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.timeKF !== currentTime.toFixed(3))
+            newTextElements[index].keyframes = newTextElements[index].keyframes.filter(keyframe => keyframe.timeKF !== currentTime.toFixed(3));
         } else {
             newTextElements[index].keyframes.push({
                 timeKF: currentTime.toFixed(3),
@@ -153,7 +155,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
 
         onHandleTextElementsChange(newTextElements);
         updateAnimationObjectKeyframes(index);
-    }
+    };
 
 
     return(
@@ -312,6 +314,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   required
                   min="0"
                   max="1"
+                  step="0.01"
                   value={TextObject.opacity}
                   onChange={(e) => changeTextElementOpacity(e, TextObject.id)}
               />
@@ -367,6 +370,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
           </div>
       </>
     );
-}
+};
 
 export default TextInspector;

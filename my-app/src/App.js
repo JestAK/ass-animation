@@ -1,3 +1,5 @@
+'use strict'
+
 import anime from "animejs";
 import TextInspector from "./Components/TextInspector";
 import VideoBlock from "./Components/VideoBlock";
@@ -6,7 +8,7 @@ import VideoControllers from "./Components/VideoControllers";
 import './App.css';
 import React, {useEffect, useRef, useState} from "react";
 import Draggable from "react-draggable";
-import svg from "./Assets/loading.svg"
+import svg from "./Assets/loading.svg";
 import ASSGenerator from "./Modules/ASSGenerator";
 
 function App() {
@@ -35,7 +37,7 @@ function App() {
 
     //initialise variables
     const MILLISECONDS_PER_SECOND = 1000;
-    const VIDEO_FPS = 10
+    const VIDEO_FPS = 10;
     const video = useRef(null);
     const [videoSource, setVideoSource] = useState(null);
     const [videoCurrentTime, setVideoCurrentTime] = useState(0);
@@ -46,14 +48,14 @@ function App() {
     const [textIdCounter, setTextIdCounter] = useState(0);
     const [isHidden, setIsHidden] = useState(true);
     const [selectedTextObject, setSelectedTextObject] = useState({});
-    const [animations, setAnimations] = useState([])
-    const [animationTimeline, setAnimationTimeline] = useState([])
-    const [isDraggable, setIsDraggable] = useState(false)
-    const fileInput = useRef(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const [isRendering, setIsRender] = useState(false)
-    const tempDownloadLink = useRef(null)
-    const framesData = useRef([])
+    const [animations, setAnimations] = useState([]);
+    const [animationTimeline, setAnimationTimeline] = useState([]);
+    const [isDraggable, setIsDraggable] = useState(false);
+    const fileInput = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRendering, setIsRender] = useState(false);
+    const tempDownloadLink = useRef(null);
+    const framesData = useRef([]);
 
     useEffect(() => {
         textElementsRef.current = textElements;
@@ -61,13 +63,13 @@ function App() {
 
     useEffect(() => {
         if (isRendering){
-            console.log(isRendering)
-            collectingRenderData()
+            console.log(isRendering);
+            collectingRenderData();
         }
     }, [videoCurrentTime, isRendering]);
 
     useEffect(() => {
-        const newTimeline = []
+        const newTimeline = [];
 
         // console.log("INSIDE USE EFFECTS")
         // console.log(textElements)
@@ -93,7 +95,7 @@ function App() {
                 }));
             })
 
-            setAnimationTimeline(newTimeline)
+            setAnimationTimeline(newTimeline);
         }
     }, [animations]);
 
@@ -107,13 +109,13 @@ function App() {
 
     // Hidden flag for TextInspector
     const onHandleIsHiddenChange = (newValue) => {
-        setIsHidden(newValue)
-    }
+        setIsHidden(newValue);
+    };
 
     const onHandleTextElementsChange = (newValue) => {
-        setTextElements(newValue)
+        setTextElements(newValue);
         // console.log(textElements)
-    }
+    };
 
     // Getting pointer to text object
     const getSelectedTextObject = (id) => {
@@ -122,22 +124,22 @@ function App() {
         if (!foundObject) {
             alert(`Object not found with id: ${id}`);
         } else {
-            setSelectedTextObject(foundObject)
+            setSelectedTextObject(foundObject);
         }
-    }
+    };
 
     // Updates text object position
     const handleTextPosChange = (event, data, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        // console.log(data)
-        newTextElements[index].posX = data.x
-        newTextElements[index].posY = data.y
-        // console.log(newTextElements[index].posX)
-        // console.log(data)
+        // console.log(data);
+        newTextElements[index].posX = data.x;
+        newTextElements[index].posY = data.y;
+        // console.log(newTextElements[index].posX);
+        // console.log(data);
 
         setTextElements(newTextElements);
-    }
+    };
 
     const onHandleTimeUpdate = () => {
         if (video.current) {
@@ -148,15 +150,15 @@ function App() {
             });
             setVideoCurrentTime(currentTime);
         }
-    }
+    };
 
     const onHandleRangeUpdate = () => {
         if (timelineRange.current && video.current) {
-            onHandlePause()
+            onHandlePause();
             const newTime = (timelineRange.current.value / 100) * videoDuration.current;
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
-            // console.log(convertTime(videoCurrentTime))
+            // console.log(convertTime(videoCurrentTime));
             animationTimeline.forEach(animation => {
                 animation.seek(newTime * MILLISECONDS_PER_SECOND);
             });
@@ -165,38 +167,38 @@ function App() {
 
     const onHandlePlay = () => {
         if (video.current){
-            video.current.play()
+            video.current.play();
             animationTimeline.forEach(animation => {
                 animation.play();
             });
         }
-    }
+    };
 
     const onHandlePause = () => {
         if (video.current){
-            video.current.pause()
+            video.current.pause();
             animationTimeline.forEach(animation => {
                 animation.pause();
             });
         }
-    }
+    };
 
     const onHandleControllerInputUpdate = (newTime) => {
         if (video.current){
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
         }
-    }
+    };
 
     const updateAnimationObjectKeyframes = (textElementIndex) => {
-        const textElement = textElements[textElementIndex]
-        const id = textElement.id
-        const keyframes = textElement.keyframes
-        // console.log(keyframes)
-        const newAnimations = [...animations]
+        const textElement = textElements[textElementIndex];
+        const id = textElement.id;
+        const keyframes = textElement.keyframes;
+        // console.log(keyframes);
+        const newAnimations = [...animations];
         let animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
         if (animationIndex !== -1){
-            newAnimations[animationIndex].keyframes = keyframes
+            newAnimations[animationIndex].keyframes = keyframes;
         } else {
             newAnimations.push({
                 target: {
@@ -217,7 +219,7 @@ function App() {
                 keyframes: keyframes,
                 delay: 0,
                 easing: "linear"
-            })
+            });
         }
 
         animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
@@ -226,19 +228,19 @@ function App() {
         // Re-calculate duration for each animation's keyframe
         newAnimations[animationIndex].keyframes.forEach((keyframe, index) => {
             if (index === 0){
-                keyframe.duration = keyframe.timeKF * MILLISECONDS_PER_SECOND
+                keyframe.duration = keyframe.timeKF * MILLISECONDS_PER_SECOND;
             } else {
-                keyframe.duration = (keyframe.timeKF - newAnimations[animationIndex].keyframes[index - 1].timeKF) * MILLISECONDS_PER_SECOND
+                keyframe.duration = (keyframe.timeKF - newAnimations[animationIndex].keyframes[index - 1].timeKF) * MILLISECONDS_PER_SECOND;
             }
         });
 
         setAnimations(newAnimations);
-    }
+    };
 
     const getPropertyByPropName = (properties, propName) => {
-        const propIndex = properties.findIndex((property) => property.property === propName)
-        return properties[propIndex]?.currentValue
-    }
+        const propIndex = properties.findIndex((property) => property.property === propName);
+        return properties[propIndex]?.currentValue;
+    };
 
     const toHEX = (x) => {
         const hex = Math.round(x).toString(16);
@@ -252,49 +254,49 @@ function App() {
         const g = parseInt(values[2], 10);
         const b = parseInt(values[3], 10);
 
-        return `#${toHEX(r)}${toHEX(g)}${toHEX(b)}`
-    }
+        return `#${toHEX(r)}${toHEX(g)}${toHEX(b)}`;
+    };
 
     const changeTextObjectProperties = (textElementId, properties, latestTextElements) => {
 
-        // console.log("INSIDE CHANGE FUNC:")
-        // console.log(latestTextElements)
+        // console.log("INSIDE CHANGE FUNC:");
+        // console.log(latestTextElements);
 
         const index = textElements.findIndex((element) => element.id === textElementId);
         const newTextElements = [...latestTextElements];
 
-        const translateX = getPropertyByPropName(properties, "translateX")
-        const translateY = getPropertyByPropName(properties, "translateY")
-        const fontSize = getPropertyByPropName(properties, "fontSize")
-        const scaleX = getPropertyByPropName(properties, "scaleX")
-        const scaleY = getPropertyByPropName(properties, "scaleY")
-        const rotateX = getPropertyByPropName(properties, "rotateX")
-        const rotateY = getPropertyByPropName(properties, "rotateY")
-        const rotateZ = getPropertyByPropName(properties, "rotateZ")
-        const opacity = getPropertyByPropName(properties, "opacity")
-        const textColor = rgbaToHEX(getPropertyByPropName(properties, "textColor"))
-        const strokeColor = rgbaToHEX(getPropertyByPropName(properties, "strokeColor"))
-        const strokeThickness = getPropertyByPropName(properties, "strokeThickness")
+        const translateX = getPropertyByPropName(properties, "translateX");
+        const translateY = getPropertyByPropName(properties, "translateY");
+        const fontSize = getPropertyByPropName(properties, "fontSize");
+        const scaleX = getPropertyByPropName(properties, "scaleX");
+        const scaleY = getPropertyByPropName(properties, "scaleY");
+        const rotateX = getPropertyByPropName(properties, "rotateX");
+        const rotateY = getPropertyByPropName(properties, "rotateY");
+        const rotateZ = getPropertyByPropName(properties, "rotateZ");
+        const opacity = getPropertyByPropName(properties, "opacity");
+        const textColor = rgbaToHEX(getPropertyByPropName(properties, "textColor"));
+        const strokeColor = rgbaToHEX(getPropertyByPropName(properties, "strokeColor"));
+        const strokeThickness = getPropertyByPropName(properties, "strokeThickness");
 
-        newTextElements[index].posX = translateX
-        newTextElements[index].posY = translateY
-        newTextElements[index].fontSize = fontSize
-        newTextElements[index].scaleX = scaleX
-        newTextElements[index].scaleY = scaleY
-        newTextElements[index].rotateX = rotateX
-        newTextElements[index].rotateY = rotateY
-        newTextElements[index].rotateZ = rotateZ
-        newTextElements[index].opacity = opacity
-        newTextElements[index].textColor = textColor
-        newTextElements[index].strokeColor = strokeColor
-        newTextElements[index].strokeThickness = strokeThickness
+        newTextElements[index].posX = translateX;
+        newTextElements[index].posY = translateY;
+        newTextElements[index].fontSize = fontSize;
+        newTextElements[index].scaleX = scaleX;
+        newTextElements[index].scaleY = scaleY;
+        newTextElements[index].rotateX = rotateX;
+        newTextElements[index].rotateY = rotateY;
+        newTextElements[index].rotateZ = rotateZ;
+        newTextElements[index].opacity = opacity;
+        newTextElements[index].textColor = textColor;
+        newTextElements[index].strokeColor = strokeColor;
+        newTextElements[index].strokeThickness = strokeThickness;
 
-        // console.log(textColor)
+        // console.log(textColor);
 
         setTextElements(newTextElements);
-        // console.log("UPDATED TEXT ELEMENTS:")
-        // console.log(newTextElements)
-    }
+        // console.log("UPDATED TEXT ELEMENTS:");
+        // console.log(newTextElements);
+    };
 
     const onHandleFileChange = (event) => {
         const file = event.target.files[0];
@@ -308,43 +310,43 @@ function App() {
 
         // console.log(timeInSeconds)
 
-        const milliseconds = (timeInSeconds % 1).toFixed(3) * 1000
-        const seconds = Math.floor(timeInSeconds % 60)
-        const minutes = Math.floor(timeInSeconds / 60)
-        const hours = Math.floor(timeInSeconds / 3600)
+        const milliseconds = (timeInSeconds % 1).toFixed(3) * 1000;
+        const seconds = Math.floor(timeInSeconds % 60);
+        const minutes = Math.floor(timeInSeconds / 60);
+        const hours = Math.floor(timeInSeconds / 3600);
 
-        return `${hours}:${minutes}:${seconds}.${milliseconds}`
-    }
+        return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+    };
 
     const changeAnimationProgress = (newTime) => {
         animationTimeline.forEach(animation => {
             animation.seek(newTime * MILLISECONDS_PER_SECOND);
         });
-        setVideoCurrentTime(newTime)
-    }
+        setVideoCurrentTime(newTime);
+    };
 
     const collectingRenderData = () => {
-        // console.log("INSIDE collecting render data")
-        setIsLoading(true)
+        // console.log("INSIDE collecting render data");
+        setIsLoading(true);
 
-        // console.log(video.current.videoWidth)
-        // console.log(video.current.videoHeight)
+        // console.log(video.current.videoWidth);
+        // console.log(video.current.videoHeight);
 
-        const timeStep = 1 / VIDEO_FPS
+        const timeStep = 1 / VIDEO_FPS;
 
-        // console.log(textElements)
+        // console.log(textElements);
         //
-        // console.log("VIDEO CURRENT TIME")
-        // console.log(videoCurrentTime)
+        // console.log("VIDEO CURRENT TIME");
+        // console.log(videoCurrentTime);
 
-        const nextRenderTime = Number((videoCurrentTime + timeStep).toFixed(3)) >= Number(videoDuration.current.toFixed(3)) ? videoDuration.current : Number((videoCurrentTime + timeStep).toFixed(3)) //Operations for correct float calculation
+        const nextRenderTime = Number((videoCurrentTime + timeStep).toFixed(3)) >= Number(videoDuration.current.toFixed(3)) ? videoDuration.current : Number((videoCurrentTime + timeStep).toFixed(3)); //Operations for correct float calculation
 
         // Using for instead of forEach, because of eslint warning
         for (let i = 0; i < textElements.length; i++){
-            const textElement = textElements[i]
+            const textElement = textElements[i];
 
-            // console.log(textElement.posX)
-            // console.log(textElement.posY)
+            // console.log(textElement.posX);
+            // console.log(textElement.posY);
 
             framesData.current.push({
                 id: textElement.id,
@@ -354,46 +356,40 @@ function App() {
                 posX: textElement.posX,
                 posY: textElement.posY,
                 fontSize: textElement.fontSize,
-                rotateX: textElement.rotateX,
-                rotateY: textElement.rotateY,
-                rotateZ: textElement.rotateZ,
+                rotateX: 360 - textElement.rotateX,
+                rotateY: 360 - textElement.rotateY,
+                rotateZ: 360 - textElement.rotateZ,
                 scaleX: textElement.scaleX,
                 scaleY: textElement.scaleY,
                 opacity: toHEX((1 - textElement.opacity) * 255).toUpperCase(),
                 textColor: [textElement.textColor.slice(-2).toUpperCase(), textElement.textColor.slice(-4, -2).toUpperCase(), textElement.textColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
                 strokeColor: [textElement.strokeColor.slice(-2).toUpperCase(), textElement.strokeColor.slice(-4, -2).toUpperCase(), textElement.strokeColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
                 strokeThickness: textElement.strokeThickness,
-            })
+            });
         }
-
-        console.log(Number(videoCurrentTime) === Number(videoDuration.current))
-        console.log("ZALUPA 1")
-        console.log(Number(videoCurrentTime))
-        console.log("ZALUPA 2")
-        console.log(Number(videoDuration.current))
 
         if (Number(videoCurrentTime) === Number(videoDuration.current)){
-            setIsRender(false)
-            console.log("START GENERATE app.js")
-            console.log(framesData.current)
+            setIsRender(false);
+            console.log("START GENERATE app.js");
+            console.log(framesData.current);
             if (framesData.current){
-                const downloadBlob = ASSGenerator(video.current, framesData.current)
-                tempDownloadLink.current.href = URL.createObjectURL(downloadBlob)
-                tempDownloadLink.current.download = "ass-animation.ass"
+                const downloadBlob = ASSGenerator(video.current, framesData.current);
+                tempDownloadLink.current.href = URL.createObjectURL(downloadBlob);
+                tempDownloadLink.current.download = "ass-animation.ass";
             } else {
-                alert("There is no subtitles")
+                alert("There is no subtitles");
             }
         } else {
-            changeAnimationProgress(nextRenderTime)
+            changeAnimationProgress(nextRenderTime);
         }
-    }
+    };
 
     const onHandleDownload = () => {
-        tempDownloadLink.current.click()
-        setIsLoading(false)
-        console.log(isLoading)
-        console.log(isRendering)
-    }
+        tempDownloadLink.current.click();
+        setIsLoading(false);
+        console.log(isLoading);
+        console.log(isRendering);
+    };
 
 
   return (
@@ -437,15 +433,12 @@ function App() {
               style={{display: "none"}}
           />
           <button id="choose-video" className="main-button" onClick={() => fileInput.current.click()}>Choose Video</button>
-          <button id="zalupa-test" className="main-button" onClick={() => {
-              video.current.currentTime = 50.0
-              changeAnimationProgress(50.0)
-          }}>ZALUPA</button>
           <button id="render-ass" className="main-button" onClick={() => {
               setIsRender(true)
               changeAnimationProgress(0)
           }}>Render subtitles</button>
           <div id="viewport">
+              <div className="centers"></div>
               <VideoBlock ref = {video}
                           onHandleTimeUpdate = {onHandleTimeUpdate}
                           onLoadedMetadata={() => {

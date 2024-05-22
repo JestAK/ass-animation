@@ -38,7 +38,7 @@ body{
 
 #viewport #video{
   margin: 50px 0;
-  width: 1300px;
+  max-width: 1000px;
   height: auto;
 }
 
@@ -282,7 +282,7 @@ body{
 }
 
 #no-video{
-  width: 700px;
+  width: 1000px;
   aspect-ratio: 16/9;
   background-color: #696969;
   color: #2a2a2a;
@@ -314,8 +314,5 @@ body{
   border-radius: 5px;
   color: white;
   font-weight: bold;
-}
-
-#zalupa-test{
-  top: 140px;
+  filter: drop-shadow(0 0 40px black);
 }

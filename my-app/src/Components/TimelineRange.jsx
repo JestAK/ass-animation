@@ -1,3 +1,5 @@
+'use strict'
+
 import '../App.css';
 import React, {forwardRef, useEffect} from 'react';
 
