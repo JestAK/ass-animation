@@ -50,6 +50,7 @@ body{
   -webkit-text-stroke-width: 3px;
   -webkit-text-stroke-color: black;
   paint-order: stroke fill;
+  transform-origin: bottom center;
 }
 
 #controllers{
@@ -313,4 +314,8 @@ body{
   border-radius: 5px;
   color: white;
   font-weight: bold;
+}
+
+#zalupa-test{
+  top: 140px;
 }

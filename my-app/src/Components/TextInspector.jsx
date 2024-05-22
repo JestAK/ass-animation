@@ -147,9 +147,9 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
 
         newTextElements[index].keyframes.sort((a, b) => a.timeKF - b.timeKF);
 
-        console.log("Keyframe added")
-        console.log(newTextElements[index].keyframes)
-        console.log(newTextElements)
+        // console.log("Keyframe added")
+        // console.log(newTextElements[index].keyframes)
+        // console.log(newTextElements)
 
         onHandleTextElementsChange(newTextElements);
         updateAnimationObjectKeyframes(index);

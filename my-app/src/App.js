@@ -50,13 +50,21 @@ function App() {
     const [animationTimeline, setAnimationTimeline] = useState([])
     const [isDraggable, setIsDraggable] = useState(false)
     const fileInput = useRef(null)
-    const isLoading = useRef(false)
-    const isRendering = useRef(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [isRendering, setIsRender] = useState(false)
     const tempDownloadLink = useRef(null)
+    const framesData = useRef([])
 
     useEffect(() => {
         textElementsRef.current = textElements;
     }, [textElements]);
+
+    useEffect(() => {
+        if (isRendering){
+            console.log(isRendering)
+            collectingRenderData()
+        }
+    }, [videoCurrentTime, isRendering]);
 
     useEffect(() => {
         const newTimeline = []
@@ -66,7 +74,7 @@ function App() {
 
         if (animations){
 
-            console.log(animations)
+            // console.log(animations)
 
 
             animations.forEach((animeObj) => {
@@ -94,7 +102,7 @@ function App() {
         const newTextElements = [...textElements];
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
-        console.log(newTextElements)
+        // console.log(newTextElements)
     };
 
     // Hidden flag for TextInspector
@@ -104,7 +112,7 @@ function App() {
 
     const onHandleTextElementsChange = (newValue) => {
         setTextElements(newValue)
-        console.log(textElements)
+        // console.log(textElements)
     }
 
     // Getting pointer to text object
@@ -184,7 +192,7 @@ function App() {
         const textElement = textElements[textElementIndex]
         const id = textElement.id
         const keyframes = textElement.keyframes
-        console.log(keyframes)
+        // console.log(keyframes)
         const newAnimations = [...animations]
         let animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
         if (animationIndex !== -1){
@@ -281,7 +289,7 @@ function App() {
         newTextElements[index].strokeColor = strokeColor
         newTextElements[index].strokeThickness = strokeThickness
 
-        console.log(textColor)
+        // console.log(textColor)
 
         setTextElements(newTextElements);
         // console.log("UPDATED TEXT ELEMENTS:")
@@ -298,89 +306,93 @@ function App() {
 
     const convertTime = (timeInSeconds) => {
 
-        console.log(timeInSeconds)
+        // console.log(timeInSeconds)
 
         const milliseconds = (timeInSeconds % 1).toFixed(3) * 1000
         const seconds = Math.floor(timeInSeconds % 60)
         const minutes = Math.floor(timeInSeconds / 60)
         const hours = Math.floor(timeInSeconds / 3600)
 
-        // console.log(`${hours}:${minutes}:${seconds}.${milliseconds}`)
-
         return `${hours}:${minutes}:${seconds}.${milliseconds}`
     }
 
-    const collectingRenderData = () => {
-        isRendering.current = true
-        isLoading.current = true
+    const changeAnimationProgress = (newTime) => {
+        animationTimeline.forEach(animation => {
+            animation.seek(newTime * MILLISECONDS_PER_SECOND);
+        });
+        setVideoCurrentTime(newTime)
+    }
 
-        console.log(video.current.videoWidth)
-        console.log(video.current.videoHeight)
+    const collectingRenderData = () => {
+        // console.log("INSIDE collecting render data")
+        setIsLoading(true)
+
+        // console.log(video.current.videoWidth)
+        // console.log(video.current.videoHeight)
 
         const timeStep = 1 / VIDEO_FPS
-        onHandleControllerInputUpdate(0) // Place time at the beginning
 
-        let renderCurrentTime = 0
+        // console.log(textElements)
+        //
+        // console.log("VIDEO CURRENT TIME")
+        // console.log(videoCurrentTime)
 
-        const framesData = []
+        const nextRenderTime = Number((videoCurrentTime + timeStep).toFixed(3)) >= Number(videoDuration.current.toFixed(3)) ? videoDuration.current : Number((videoCurrentTime + timeStep).toFixed(3)) //Operations for correct float calculation
 
-        console.log(textElements)
+        // Using for instead of forEach, because of eslint warning
+        for (let i = 0; i < textElements.length; i++){
+            const textElement = textElements[i]
 
-        while (renderCurrentTime <= videoDuration.current){
+            // console.log(textElement.posX)
+            // console.log(textElement.posY)
 
-            console.log(videoCurrentTime)
+            framesData.current.push({
+                id: textElement.id,
+                startTime: convertTime(videoCurrentTime),
+                endTime: convertTime(nextRenderTime),
+                content: textElement.content,
+                posX: textElement.posX,
+                posY: textElement.posY,
+                fontSize: textElement.fontSize,
+                rotateX: textElement.rotateX,
+                rotateY: textElement.rotateY,
+                rotateZ: textElement.rotateZ,
+                scaleX: textElement.scaleX,
+                scaleY: textElement.scaleY,
+                opacity: toHEX((1 - textElement.opacity) * 255).toUpperCase(),
+                textColor: [textElement.textColor.slice(-2).toUpperCase(), textElement.textColor.slice(-4, -2).toUpperCase(), textElement.textColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
+                strokeColor: [textElement.strokeColor.slice(-2).toUpperCase(), textElement.strokeColor.slice(-4, -2).toUpperCase(), textElement.strokeColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
+                strokeThickness: textElement.strokeThickness,
+            })
+        }
 
-            // console.log("INTO WHILE")
+        console.log(Number(videoCurrentTime) === Number(videoDuration.current))
+        console.log("ZALUPA 1")
+        console.log(Number(videoCurrentTime))
+        console.log("ZALUPA 2")
+        console.log(Number(videoDuration.current))
 
-            const nextRenderTime = (renderCurrentTime*1000 + timeStep*1000)/1000 //Operations for correct float calculation
-
-            // Using for instead of forEach, because of eslint warning
-            for (let i = 0; i < textElements.length; i++){
-                const textElement = textElements[i]
-
-                console.log(textElement.posX)
-                console.log(textElement.posY)
-
-                framesData.push({
-                    id: textElement.id,
-                    startTime: convertTime(renderCurrentTime),
-                    endTime: nextRenderTime >= videoDuration.current ? convertTime(videoDuration.current) : convertTime(nextRenderTime),
-                    content: textElement.content,
-                    posX: textElement.posX,
-                    posY: textElement.posY,
-                    fontSize: textElement.fontSize,
-                    rotateX: textElement.rotateX,
-                    rotateY: textElement.rotateY,
-                    rotateZ: textElement.rotateZ,
-                    scaleX: textElement.scaleX,
-                    scaleY: textElement.scaleY,
-                    opacity: toHEX((1 - textElement.opacity) * 255).toUpperCase(),
-                    textColor: [textElement.textColor.slice(-2).toUpperCase(), textElement.textColor.slice(-4, -2).toUpperCase(), textElement.textColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
-                    strokeColor: [textElement.strokeColor.slice(-2).toUpperCase(), textElement.strokeColor.slice(-4, -2).toUpperCase(), textElement.strokeColor.slice(-6, -4).toUpperCase()].join(""), // Convert RGB to BGR
-                    strokeThickness: textElement.strokeThickness,
-                })
+        if (Number(videoCurrentTime) === Number(videoDuration.current)){
+            setIsRender(false)
+            console.log("START GENERATE app.js")
+            console.log(framesData.current)
+            if (framesData.current){
+                const downloadBlob = ASSGenerator(video.current, framesData.current)
+                tempDownloadLink.current.href = URL.createObjectURL(downloadBlob)
+                tempDownloadLink.current.download = "ass-animation.ass"
+            } else {
+                alert("There is no subtitles")
             }
-
-            renderCurrentTime = nextRenderTime
-            onHandleControllerInputUpdate(nextRenderTime)
-        }
-
-        console.log("START GENERATE app.js")
-        console.log(framesData)
-        if (framesData){
-            const downloadBlob = ASSGenerator(video.current, framesData)
-            tempDownloadLink.current.href = URL.createObjectURL(downloadBlob)
-            tempDownloadLink.current.download = "ass-animation.ass"
         } else {
-            alert("There is no subtitles")
+            changeAnimationProgress(nextRenderTime)
         }
-
-        isLoading.current = false
     }
 
     const onHandleDownload = () => {
         tempDownloadLink.current.click()
-        isRendering.current = false
+        setIsLoading(false)
+        console.log(isLoading)
+        console.log(isRendering)
     }
 
 
@@ -389,20 +401,20 @@ function App() {
           <div
               id="loading-downloading"
               style={{
-                  visibility: isRendering.current ? 'visible' : 'hidden'
+                  visibility: isRendering || isLoading ? 'visible' : 'hidden'
               }}
           >
               <div
                   id="loading"
                   style={{
-                      visibility: isLoading.current ? 'visible' : 'hidden'
+                      visibility: isRendering && isLoading ? 'visible' : 'hidden'
                   }}>
                   <img src={svg} alt="loading circle"/>
                   <p>Wait for render ends and get your .ass file</p>
               </div>
               <button
                   id="download-button"
-                  style={{visibility: (isRendering.current  && !isLoading.current) ? 'visible' : 'hidden'}}
+                  style={{visibility: !isRendering && isLoading ? 'visible' : 'hidden'}}
                   onClick={() => {onHandleDownload()}}
               >DOWNLOAD</button>
               <a
@@ -412,7 +424,11 @@ function App() {
               ></a>
           </div>
 
-        <button id="add-text" className="main-button" onClick={() => {addText(new TextObject())}}>Add Text</button>
+        <button
+            id="add-text"
+            className="main-button"
+            disabled={!videoSource}
+            onClick={() => {addText(new TextObject())}}>Add Text</button>
           <input
               type="file"
               accept="video/*"
@@ -420,8 +436,15 @@ function App() {
               ref={fileInput}
               style={{display: "none"}}
           />
-          <button id="choose-video" className="main-button" onClick={() => {fileInput.current.click()}}>Choose Video</button>
-          <button id="render-ass" className="main-button" onClick={() => collectingRenderData()}>Render subtitles</button>
+          <button id="choose-video" className="main-button" onClick={() => fileInput.current.click()}>Choose Video</button>
+          <button id="zalupa-test" className="main-button" onClick={() => {
+              video.current.currentTime = 50.0
+              changeAnimationProgress(50.0)
+          }}>ZALUPA</button>
+          <button id="render-ass" className="main-button" onClick={() => {
+              setIsRender(true)
+              changeAnimationProgress(0)
+          }}>Render subtitles</button>
           <div id="viewport">
               <VideoBlock ref = {video}
                           onHandleTimeUpdate = {onHandleTimeUpdate}
