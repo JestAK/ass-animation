@@ -13,7 +13,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
     const deleteTextElement = (id) => {
         const newTextElements = textElements.filter(element => element.id !== id);
         onHandleTextElementsChange(newTextElements);
-        console.log(textElements);
     };
 
     const changeTextElementContent = (e, id) => {
@@ -148,10 +147,6 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
         }
 
         newTextElements[index].keyframes.sort((a, b) => a.timeKF - b.timeKF);
-
-        // console.log("Keyframe added")
-        // console.log(newTextElements[index].keyframes)
-        // console.log(newTextElements)
 
         onHandleTextElementsChange(newTextElements);
         updateAnimationObjectKeyframes(index);

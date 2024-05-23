@@ -63,7 +63,6 @@ function App() {
 
     useEffect(() => {
         if (isRendering){
-            console.log(isRendering);
             collectingRenderData();
         }
     }, [videoCurrentTime, isRendering]);
@@ -71,14 +70,7 @@ function App() {
     useEffect(() => {
         const newTimeline = [];
 
-        // console.log("INSIDE USE EFFECTS")
-        // console.log(textElements)
-
         if (animations){
-
-            // console.log(animations)
-
-
             animations.forEach((animeObj) => {
 
                 // Wrapper to get React variables, which is out of Anime.js scope
@@ -104,7 +96,6 @@ function App() {
         const newTextElements = [...textElements];
         newTextElements.push(newTextElement);
         setTextElements(newTextElements);
-        // console.log(newTextElements)
     };
 
     // Hidden flag for TextInspector
@@ -114,7 +105,6 @@ function App() {
 
     const onHandleTextElementsChange = (newValue) => {
         setTextElements(newValue);
-        // console.log(textElements)
     };
 
     // Getting pointer to text object
@@ -132,11 +122,8 @@ function App() {
     const handleTextPosChange = (event, data, id) => {
         const index = textElements.findIndex((element) => element.id === id);
         const newTextElements = [...textElements];
-        // console.log(data);
         newTextElements[index].posX = data.x;
         newTextElements[index].posY = data.y;
-        // console.log(newTextElements[index].posX);
-        // console.log(data);
 
         setTextElements(newTextElements);
     };
@@ -158,7 +145,6 @@ function App() {
             const newTime = (timelineRange.current.value / 100) * videoDuration.current;
             setVideoCurrentTime(newTime);
             video.current.currentTime = newTime;
-            // console.log(convertTime(videoCurrentTime));
             animationTimeline.forEach(animation => {
                 animation.seek(newTime * MILLISECONDS_PER_SECOND);
             });
@@ -194,7 +180,6 @@ function App() {
         const textElement = textElements[textElementIndex];
         const id = textElement.id;
         const keyframes = textElement.keyframes;
-        // console.log(keyframes);
         const newAnimations = [...animations];
         let animationIndex = newAnimations.findIndex((animation) => animation.animeElementId === id);
         if (animationIndex !== -1){
@@ -259,9 +244,6 @@ function App() {
 
     const changeTextObjectProperties = (textElementId, properties, latestTextElements) => {
 
-        // console.log("INSIDE CHANGE FUNC:");
-        // console.log(latestTextElements);
-
         const index = textElements.findIndex((element) => element.id === textElementId);
         const newTextElements = [...latestTextElements];
 
@@ -291,11 +273,7 @@ function App() {
         newTextElements[index].strokeColor = strokeColor;
         newTextElements[index].strokeThickness = strokeThickness;
 
-        // console.log(textColor);
-
         setTextElements(newTextElements);
-        // console.log("UPDATED TEXT ELEMENTS:");
-        // console.log(newTextElements);
     };
 
     const onHandleFileChange = (event) => {
@@ -307,8 +285,6 @@ function App() {
     };
 
     const convertTime = (timeInSeconds) => {
-
-        // console.log(timeInSeconds)
 
         const milliseconds = (timeInSeconds % 1).toFixed(3) * 1000;
         const seconds = Math.floor(timeInSeconds % 60);
@@ -326,27 +302,15 @@ function App() {
     };
 
     const collectingRenderData = () => {
-        // console.log("INSIDE collecting render data");
         setIsLoading(true);
 
-        // console.log(video.current.videoWidth);
-        // console.log(video.current.videoHeight);
-
         const timeStep = 1 / VIDEO_FPS;
-
-        // console.log(textElements);
-        //
-        // console.log("VIDEO CURRENT TIME");
-        // console.log(videoCurrentTime);
 
         const nextRenderTime = Number((videoCurrentTime + timeStep).toFixed(3)) >= Number(videoDuration.current.toFixed(3)) ? videoDuration.current : Number((videoCurrentTime + timeStep).toFixed(3)); //Operations for correct float calculation
 
         // Using for instead of forEach, because of eslint warning
         for (let i = 0; i < textElements.length; i++){
             const textElement = textElements[i];
-
-            // console.log(textElement.posX);
-            // console.log(textElement.posY);
 
             framesData.current.push({
                 id: textElement.id,
@@ -370,8 +334,6 @@ function App() {
 
         if (Number(videoCurrentTime) === Number(videoDuration.current)){
             setIsRender(false);
-            console.log("START GENERATE app.js");
-            console.log(framesData.current);
             if (framesData.current){
                 const downloadBlob = ASSGenerator(video.current, framesData.current);
                 tempDownloadLink.current.href = URL.createObjectURL(downloadBlob);
@@ -387,8 +349,6 @@ function App() {
     const onHandleDownload = () => {
         tempDownloadLink.current.click();
         setIsLoading(false);
-        console.log(isLoading);
-        console.log(isRendering);
     };
 
 
@@ -443,7 +403,6 @@ function App() {
                           onHandleTimeUpdate = {onHandleTimeUpdate}
                           onLoadedMetadata={() => {
                               videoDuration.current = video.current.duration
-                              console.log(video.current.duration)
                           }}
                           videoSource={videoSource}
               />

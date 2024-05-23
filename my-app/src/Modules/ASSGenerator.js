@@ -1,13 +1,6 @@
 'use strict'
 
 const generateASS = (video, framesData) => {
-
-    console.log("START GENERATE");
-    console.log(framesData);
-
-    console.log(video.offsetWidth);
-    console.log(video.offsetHeight);
-
     const videoOffsetX = video.offsetWidth / 2;
     const videoOffsetY = video.offsetHeight / 2;
     const proportionX = video.videoWidth / video.offsetWidth;
@@ -25,10 +18,8 @@ const generateASS = (video, framesData) => {
     Style: ASS Animation,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2,0,2,10,10,10,1\n\n
     [Events]\n
     Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
-    console.log("FINISH GENERATE INFO");
 
     const dialogues = framesData.map(data => {
-        console.log("CREATING DIALOGUE");
         if (data.opacity !== 255){
             return `Dialogue: 0,${data.startTime},${data.endTime},ASS Animation,Animation ID${data.id},0,0,0,,{\\pos(${(data.posX + videoOffsetX) * proportionX},${(data.posY + videoOffsetY + data.fontSize/2) * proportionY})\\fs${data.fontSize * proportionY}\\fscx${data.scaleX * 100}\\fscy${data.scaleY * 100}\\frz${data.rotateZ}\\frx${data.rotateX}\\fry${data.rotateY}\\c&H${data.textColor}\\3c&H${data.strokeColor}&\\bord${data.strokeThickness}\\1a&H${data.opacity}&\\2a&H${data.opacity}&\\3a&H${data.opacity}&\\4a&H${data.opacity}&}${data.content}`;
         }
