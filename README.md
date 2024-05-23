@@ -1,7 +1,7 @@
 # Launching
 
 1. Go to `my-app` folder with `cd .../my-app`
-2. Run `npm start`
+2. Run `npm run start`
 
 # Using instruction
 1. Choose video you want to use for your animation
