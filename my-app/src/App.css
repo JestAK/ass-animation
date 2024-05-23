@@ -15,6 +15,13 @@ button, input[type="submit"], input[type="reset"] {
   outline: inherit;
 }
 
+button, .subtitle-text {
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  font-family: Arial, serif;
+}
+
 body{
   display: flex;
   flex-direction: column;
@@ -30,9 +37,9 @@ body{
 }
 
 #viewport #video{
-  max-height: 70%;
-  max-width: 70%;
   margin: 50px 0;
+  max-width: 1000px;
+  height: auto;
 }
 
 #viewport .subtitle-text{
@@ -43,6 +50,7 @@ body{
   -webkit-text-stroke-width: 3px;
   -webkit-text-stroke-color: black;
   paint-order: stroke fill;
+  transform-origin: bottom center;
 }
 
 #controllers{
@@ -147,6 +155,17 @@ body{
   justify-content: center;
 }
 
+#timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-progress{
+  position: absolute;
+  max-width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background-color: #c9d4e1;
+  width: 0;
+  left: 0;
+  z-index: 9;
+}
+
 #timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point{
   position: absolute;
   max-width: 100%;
@@ -162,6 +181,7 @@ body{
   color: white;
   transform: translateX(-50%);
   cursor: pointer;
+  z-index: 10;
 }
 
 #timeline .text-track .text-track-keyframe-area .text-track-keyframe-area-point:hover::after{
@@ -177,23 +197,36 @@ body{
   z-index: 1;
 }
 
-#add-text{
+.main-button{
   width: 200px;
   height: 30px;
   background-color: #2a2a2a;
   border-radius: 5px;
   position: absolute;
-  top: 5px;
-  left: 5px;
   color: white;
   font-weight: bold;
 }
 
-#add-text:hover{
+#add-text{
+  top: 5px;
+  left: 5px;
+}
+
+#choose-video{
+  top: 40px;
+  left: 5px;
+}
+
+#render-ass{
+  top: 75px;
+  left: 5px;
+}
+
+.main-button:hover{
   background-color: #363636;
 }
 
-#add-text:active{
+.main-button:active{
   background-color: #484848;
 }
 
@@ -246,4 +279,40 @@ body{
   border-radius: 5px;
   padding: 5px;
   margin-top: 15px;
+}
+
+#no-video{
+  width: 1000px;
+  aspect-ratio: 16/9;
+  background-color: #696969;
+  color: #2a2a2a;
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#loading-downloading{
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(47, 47, 47, 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 400;
+}
+
+#download-button{
+  width: 400px;
+  height: 60px;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  filter: drop-shadow(0 0 40px black);
 }
