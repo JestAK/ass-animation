@@ -2,7 +2,6 @@
 
 import type { TextElement } from "../types";
 
-import '../App.css';
 import React from "react";
 
 interface TextInspectorProps {
@@ -167,7 +166,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
 
     return(
       <>
-          <div id="text-inspector" style={{visibility: isHidden ? 'hidden' : 'visible'}}>
+          <div id="text-inspector" className={`absolute top-[5px] right-[5px] flex min-h-[300px] max-h-[600px] min-w-[200px] max-w-[300px] flex-col overflow-y-auto rounded-[5px] bg-[#2a2a2a] p-[10px] font-normal text-white [&>*]:shrink-0 [&_p]:text-center [&_input]:mb-[5px] ${isHidden ? "invisible" : "visible"}`}>
               <p>Text ID: {TextObject.id}</p>
 
               <label htmlFor="PosX">Position X:</label>
@@ -326,7 +325,7 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   onChange={(e) => changeTextElementOpacity(e, TextObject.id)}
               />
 
-              <button id="toggle-keyframe-button" onClick={() => {
+              <button id="toggle-keyframe-button" className="cursor-pointer select-none border-none font-controls text-[length:inherit] [line-height:inherit] [outline:inherit] font-normal text-white mt-[15px] rounded-[5px] bg-[#3d3d3d] p-[5px]" onClick={() => {
                   toggleCreateKeyframe(TextObject, videoCurrentTime)
               }}>
                   {
@@ -364,13 +363,13 @@ const TextInspector = ({TextObject, isHidden, onHandleIsHiddenChange, textElemen
                   )
               }
 
-              <button id="delete-button" onClick={() => {
+              <button id="delete-button" className="cursor-pointer select-none border-none font-controls text-[length:inherit] [line-height:inherit] [outline:inherit] font-normal text-white mt-[10px] rounded-[5px] bg-[#a22929] p-[5px]" onClick={() => {
                   deleteTextElement(TextObject.id)
                   isHiddenChange()
               }}>Delete
               </button>
 
-              <button id="close-button" onClick={() => {
+              <button id="close-button" className="cursor-pointer select-none border-none font-controls text-[length:inherit] [line-height:inherit] [outline:inherit] font-normal text-white mt-[15px] rounded-[5px] bg-[#3d3d3d] p-[5px]" onClick={() => {
                   isHiddenChange()
               }}>Close
               </button>

@@ -5,11 +5,12 @@ import TextInspector from "./Components/TextInspector";
 import VideoBlock from "./Components/VideoBlock";
 import TimelineRange from "./Components/TimelineRange";
 import VideoControllers from "./Components/VideoControllers";
-import "./App.css";
 import React, { useEffect, useRef, useState } from "react";
-import Draggable from "react-draggable";
-// import svg from "./Assets/loading.svg";
+import DraggableText from "./Components/DraggableText";
 import ASSGenerator from "./Modules/ASSGenerator";
+import { Button } from "./Components/ui/button";
+import TimelineScale from "./Components/TimelineScale";
+import TimelineRuler from "./Components/TimelineRuler";
 
 function App() {
     // All parameters of text object
@@ -65,12 +66,13 @@ function App() {
     const [selectedTextObject, setSelectedTextObject] = useState<TextElement>({} as TextElement);
     const [animations, setAnimations] = useState<AnimationObject[]>([]);
     const [animationTimeline, setAnimationTimeline] = useState<JSAnimation[]>([]);
-    const [isDraggable, setIsDraggable] = useState(false);
     const fileInput = useRef<HTMLInputElement>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRendering, setIsRender] = useState(false);
     const tempDownloadLink = useRef<HTMLAnchorElement>(null);
     const framesData = useRef<RenderFrame[]>([]);
+    const [videoIsLoading, setVideoIsLoading] = useState(false);
+    const [timelineScale, setTimelineScale] = useState(1)
 
     useEffect(() => {
         textElementsRef.current = textElements;
@@ -319,9 +321,13 @@ function App() {
 
     const onHandleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files![0];
+        if (!file) return;
+
+        setVideoIsLoading(true)
         if (file) {
             const fileURL = URL.createObjectURL(file);
             setVideoSource(fileURL);
+            setVideoIsLoading(false)
         }
     };
 
@@ -407,79 +413,52 @@ function App() {
         setIsLoading(false);
     };
 
+    const onHandleTimelineScaleChange = (newScale: number) => {
+        const normalizedScale = 2 ** newScale;
+        setTimelineScale(normalizedScale)
+    }
+
     return (
         <>
             <div
                 id="loading-downloading"
-                style={{
-                    visibility: isRendering || isLoading ? "visible" : "hidden",
-                }}
+                className={`absolute z-[1000] flex h-full w-full flex-col items-center justify-center bg-[rgba(47,47,47,0.94)] font-normal text-white ${isRendering || isLoading ? "visible" : "invisible"}`}
             >
                 <div
                     id="loading"
-                    style={{
-                        visibility:
-                            isRendering && isLoading ? "visible" : "hidden",
-                    }}
+                    className={isRendering && isLoading ? "visible" : "invisible"}
                 >
-                    {/* <img src={svg} alt="loading circle" /> */}
                     <p>Wait for render ends and get your .ass file</p>
                 </div>
-                <button
-                    id="download-button"
-                    style={{
-                        visibility:
-                            !isRendering && isLoading ? "visible" : "hidden",
-                    }}
-                    onClick={() => {
-                        onHandleDownload();
-                    }}
-                >
-                    DOWNLOAD
-                </button>
+                <Button onClick={() => {onHandleDownload();}}>DOWNLOAD</Button>
                 <a
                     id="temp-download-link"
-                    style={{ display: "none" }}
+                    className="hidden"
                     ref={tempDownloadLink}
                 ></a>
             </div>
 
-            <button
-                id="add-text"
-                className="main-button"
-                disabled={!videoSource}
-                onClick={() => {
-                    addText(new TextObject());
-                }}
-            >
-                Add Text
-            </button>
+            <div className={`absolute z-[1000] flex h-full w-full flex-col items-center justify-center bg-[rgba(47,47,47,0.94)] font-normal text-white ${videoIsLoading ? "visible" : "invisible"}`}>Video is Loading...</div>
+
+
+            <div className="flex flex-col gap-1 absolute max-w-xs p-4">
+                <Button disabled={!videoSource} onClick={() => {addText(new TextObject())}}>Add Text</Button>
+                <Button onClick={() => fileInput.current!.click()}>Choose Video</Button>
+                <Button onClick={() => {
+                    setIsRender(true);
+                    changeAnimationProgress(0);
+                }}>
+                    Render subtitles
+                </Button>
+            </div>
             <input
                 type="file"
                 accept="video/*"
                 onChange={onHandleFileChange}
                 ref={fileInput}
-                style={{ display: "none" }}
+                className="hidden"
             />
-            <button
-                id="choose-video"
-                className="main-button"
-                onClick={() => fileInput.current!.click()}
-            >
-                Choose Video
-            </button>
-            <button
-                id="render-ass"
-                className="main-button"
-                onClick={() => {
-                    setIsRender(true);
-                    changeAnimationProgress(0);
-                }}
-            >
-                Render subtitles
-            </button>
-            <div id="viewport">
-                <div className="centers"></div>
+            <div id="viewport" className="flex min-h-[630px] grow-[10] items-center justify-center bg-[#333333]">
                 <VideoBlock
                     ref={video}
                     onHandleTimeUpdate={onHandleTimeUpdate}
@@ -491,50 +470,18 @@ function App() {
 
                 {/*Drawing all text objects*/}
                 {textElements.map((textElement) => (
-                    <Draggable
-                        bounds="#viewport"
+                    <DraggableText
                         key={textElement.id}
-                        defaultPosition={{ x: 500, y: 500 }}
-                        position={{ x: textElement.posX, y: textElement.posY }}
-                        disabled={!isDraggable}
+                        textElement={textElement}
                         onDrag={(event, data) => {
                             handleTextPosChange(event, data, textElement.id);
                             getSelectedTextObject(textElement.id);
                         }}
-                    >
-                        <div
-                            className="draggable-wrapper"
-                            id={`text-wrapper-${textElement.id}`}
-                            style={{
-                                position: "absolute",
-                            }}
-                        >
-                            <pre
-                                style={{
-                                    color: textElement.textColor,
-                                    fontSize: `${textElement.fontSize}px`,
-                                    WebkitTextStrokeWidth: `${textElement.strokeThickness}px`,
-                                    WebkitTextStrokeColor:
-                                        textElement.strokeColor,
-                                    transform: `scaleX(${textElement.scaleX}) scaleY(${textElement.scaleY}) rotateX(${textElement.rotateX}deg) rotateY(${textElement.rotateY}deg) rotateZ(${textElement.rotateZ}deg)`,
-                                    opacity: textElement.opacity,
-                                }}
-                                onMouseEnter={() => {
-                                    setIsDraggable(true);
-                                }}
-                                onMouseLeave={() => {
-                                    setIsDraggable(false);
-                                }}
-                                className="subtitle-text"
-                                onDoubleClick={() => {
-                                    getSelectedTextObject(textElement.id);
-                                    setIsHidden(false);
-                                }}
-                            >
-                                {textElement.content}
-                            </pre>
-                        </div>
-                    </Draggable>
+                        onInspect={() => {
+                            getSelectedTextObject(textElement.id);
+                            setIsHidden(false);
+                        }}
+                    />
                 ))}
 
                 <TextInspector
@@ -558,7 +505,21 @@ function App() {
                 onHandlePause={onHandlePause}
                 onHandleControllerInputUpdate={onHandleControllerInputUpdate}
             />
-            <div id="timeline">
+            <div className="grid grid-cols-[1fr_9fr] grid-rows-[1fr_9fr] divide-x-2 divide-y-2 divide-zinc-700 min-h-[300px]">
+                <div className="justify-center items-center">
+                    <TimelineScale 
+                        onHandleTimelineScaleChange={onHandleTimelineScaleChange}
+                    />
+                </div>
+                <div className="flex min-h-full">
+                    <TimelineRuler 
+                        timelineScale={timelineScale}
+                    />
+                </div>
+                <div className="bg-green-500">3</div>
+                <div className="bg-white">4</div>
+            </div>
+            {/* <div id="timeline" className="flex min-h-[160px] grow-[3] flex-col items-center bg-[#262626] pt-[5px]">
                 <TimelineRange
                     ref={timelineRange}
                     onHandleRangeUpdate={onHandleRangeUpdate}
@@ -567,9 +528,9 @@ function App() {
                     MILLISECONDS_PER_SECOND={MILLISECONDS_PER_SECOND}
                 />
                 {textElements.map((textElement) => (
-                    <div className="text-track" key={textElement.id}>
+                    <div className="my-[2px] flex min-h-[30px] w-full flex-row content-center bg-[#3f3f3f]" key={textElement.id}>
                         <div
-                            className="text-track-id"
+                            className="flex min-h-full w-[5%] cursor-pointer items-center justify-center border-r-2 border-r-solid border-r-[#505050] bg-[#3f3f3f] font-medium text-[#bbbbbb]"
                             onClick={() => {
                                 getSelectedTextObject(textElement.id);
                                 setIsHidden(false);
@@ -577,16 +538,16 @@ function App() {
                         >
                             ID: {textElement.id}
                         </div>
-                        <div className="text-track-keyframe-area">
+                        <div className="relative my-[2px] flex min-h-full w-[90%] items-center justify-center rounded-[3px] bg-[#2f2f2f]">
                             <div
-                                className="text-track-keyframe-area-progress"
+                                className="absolute left-0 z-[9] h-full w-0 max-w-full rounded-[3px] bg-[#c9d4e1]"
                                 style={{
                                     width: `${(videoCurrentTime / videoDuration.current) * 100}%`,
                                 }}
                             ></div>
                             {textElement.keyframes.map((keyframe) => (
                                 <div
-                                    className="text-track-keyframe-area-point"
+                                    className="absolute z-10 flex aspect-square h-[70%] max-w-full -translate-x-1/2 cursor-pointer items-center justify-center rounded-full bg-[#3498db] text-[10px] font-semibold text-white hover:after:absolute hover:after:-top-[30px] hover:after:left-1/2 hover:after:z-[1] hover:after:block hover:after:-translate-x-1/2 hover:after:border hover:after:border-solid hover:after:border-black hover:after:bg-[#181818] hover:after:p-[5px] hover:after:content-[attr(hint)]"
                                     key={keyframe.timeKF}
                                     {...{ hint: keyframe.timeKF }}
                                     style={{
@@ -599,7 +560,7 @@ function App() {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </>
     );
 }

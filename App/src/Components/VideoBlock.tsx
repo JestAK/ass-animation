@@ -1,6 +1,3 @@
-'use strict'
-
-import '../App.css';
 import React, {forwardRef} from 'react';
 
 interface VideoBlockProps {
@@ -17,6 +14,7 @@ const VideoBlock = forwardRef<HTMLVideoElement, VideoBlockProps>(({ onHandleTime
                 <video
                     ref={ref}
                     id="video"
+                    className="my-[50px] h-auto max-w-[1000px]"
                     onTimeUpdate={onHandleTimeUpdate}
                     onLoadedMetadata={onLoadedMetadata}
                 >
@@ -28,8 +26,8 @@ const VideoBlock = forwardRef<HTMLVideoElement, VideoBlockProps>(({ onHandleTime
                     Your browser does not support the video tag.
                 </video>
             ) : (
-                <div id="no-video">
-                    NO VIDEO? :(
+                <div id="no-video" className="flex aspect-video w-[1000px] items-center justify-center bg-[#696969] text-[30px] font-bold text-[#2a2a2a]">
+                    NO VIDEO
                 </div>
             )}
         </div>

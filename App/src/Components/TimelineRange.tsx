@@ -1,6 +1,3 @@
-'use strict'
-
-import '../App.css';
 import React, {forwardRef, useEffect} from 'react';
 
 interface TimelineRangeProps {
@@ -21,6 +18,7 @@ const TimelineRange = forwardRef<HTMLInputElement, TimelineRangeProps>(({onHandl
         <input
             type="range"
             id="timeline-range"
+            className="mb-[20px] h-[20px] w-[90%] cursor-pointer appearance-none rounded-[20px] bg-[#333333] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-[#1f1f1f] [&::-webkit-slider-thumb]:h-[30px] [&::-webkit-slider-thumb]:w-[30px] [&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:bg-[#1f1f1f] [&::-moz-range-thumb]:h-[30px] [&::-moz-range-thumb]:w-[30px] [&::-moz-range-thumb]:rounded-full"
             ref={ref}
             min="0"
             max="100"
